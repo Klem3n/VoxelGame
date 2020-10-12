@@ -67,12 +67,12 @@ public class World implements RenderableProvider, Disposable {
     }
 
     public byte get (float x, float y, float z) {
-        int ix = (int)x;
-        int iy = (int)y;
-        int iz = (int)z;
-        int chunkX = ix / CHUNK_SIZE_X;
-        int chunkY = iy / CHUNK_SIZE_Y;
-        int chunkZ = iz / CHUNK_SIZE_Z;
+        int ix = (int)Math.floor(x);
+        int iy = (int)Math.floor(y);
+        int iz = (int)Math.floor(z);
+        int chunkX = (int) Math.floor(x / CHUNK_SIZE_X);
+        int chunkY = (int) Math.floor(y / CHUNK_SIZE_Y);
+        int chunkZ = (int) Math.floor(z / CHUNK_SIZE_Z);
 
         Chunk chunk;
 
@@ -80,8 +80,7 @@ public class World implements RenderableProvider, Disposable {
             return 0;
         }
 
-        return chunk.get(ix % CHUNK_SIZE_X, iy % CHUNK_SIZE_Y, iz
-                % CHUNK_SIZE_Z);
+        return chunk.get(Math.floorMod(ix, CHUNK_SIZE_X), Math.floorMod(iy, CHUNK_SIZE_Y), Math.floorMod(iz, CHUNK_SIZE_Z));
     }
 
     public float getHighest (float x, float z) {
