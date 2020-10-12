@@ -14,10 +14,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.*;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
-import com.badlogic.gdx.graphics.g3d.utils.FirstPersonCameraController;
-import com.badlogic.gdx.math.MathUtils;
-import com.mygdx.game.utils.PerlinNoiseGenerator;
-import com.mygdx.game.voxel.VoxelWorld;
+import com.mygdx.game.world.World;
 
 public class VoxelGame extends ApplicationAdapter {
 	SpriteBatch spriteBatch;
@@ -25,8 +22,8 @@ public class VoxelGame extends ApplicationAdapter {
 	ModelBatch modelBatch;
 	PerspectiveCamera camera;
 	Environment lights;
-	FirstPersonCameraController controller;
-	VoxelWorld voxelWorld;
+	Player player;
+	World world;
 
 	public static Material MATERIAL;
 
@@ -39,8 +36,8 @@ public class VoxelGame extends ApplicationAdapter {
 		camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.near = 0.5f;
 		camera.far = 1000;
-		controller = new FirstPersonCameraController(camera);
-		Gdx.input.setInputProcessor(controller);
+		player = new Player(camera);
+		Gdx.input.setInputProcessor(player);
 
 		lights = new Environment();
 		lights.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1.f));
@@ -55,12 +52,11 @@ public class VoxelGame extends ApplicationAdapter {
 
 		TextureRegion[][] tiles = TextureRegion.split(texture, 32, 32);
 
-		MathUtils.random.setSeed(0);
-		voxelWorld = new VoxelWorld(tiles[0], 20, 4, 20);
-		PerlinNoiseGenerator.generateVoxels(voxelWorld, 0, 63, 10);
-		float camX = voxelWorld.voxelsX / 2f;
-		float camZ = voxelWorld.voxelsZ / 2f;
-		float camY = voxelWorld.getHighest(camX, camZ) + 1.5f;
+		world = new World(tiles[0], player);
+
+		float camX = 0;
+		float camZ = 0;
+		float camY = world.getHighest(camX, camZ) + 1.5f;
 		camera.position.set(camX, camY, camZ);
 	}
 
@@ -69,13 +65,13 @@ public class VoxelGame extends ApplicationAdapter {
 		Gdx.gl.glClearColor(0.4f, 0.4f, 0.4f, 1f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 		modelBatch.begin(camera);
-		modelBatch.render(voxelWorld, lights);
+		modelBatch.render(world, lights);
 		modelBatch.end();
-		controller.update();
+		player.update();
 
 		spriteBatch.begin();
-		font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() + ", #visible chunks: " + voxelWorld.renderedChunks
-				+ "/" + voxelWorld.numChunks, 0, 20);
+		font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() +
+				"            Position: " + (int)camera.position.x + ", " + (int)camera.position.y + ", " + (int)camera.position.z, 0, 20);
 		spriteBatch.end();
 	}
 	
@@ -84,5 +80,6 @@ public class VoxelGame extends ApplicationAdapter {
 		spriteBatch.dispose();
 		font.dispose();
 		modelBatch.dispose();
+		world.dispose();
 	}
 }

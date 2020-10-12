@@ -1,13 +1,16 @@
-package com.mygdx.game.voxel;
+package com.mygdx.game.world;
 
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.block.Block;
+import com.mygdx.game.utils.Constants;
 
-public class VoxelChunk {
-    public static final int VERTEX_SIZE = 12;
+import static com.mygdx.game.utils.Constants.*;
+
+public class Chunk implements Disposable {
     public final byte[] voxels;
     public final int width;
     public final int height;
@@ -20,14 +23,20 @@ public class VoxelChunk {
     private final int rightOffset;
     private final int frontOffset;
     private final int backOffset;
+
+    private int numVertices;
     private Mesh mesh;
     private boolean dirty;
 
-    public VoxelChunk (int width, int height, int depth) {
+    private boolean generated;
+
+    public Chunk(float x, float y, float z) {
+        this.width = CHUNK_SIZE_X;
+        this.height = CHUNK_SIZE_Y;
+        this.depth = CHUNK_SIZE_Z;
+
         this.voxels = new byte[width * height * depth];
-        this.width = width;
-        this.height = height;
-        this.depth = depth;
+
         this.topOffset = width * depth;
         this.bottomOffset = -width * depth;
         this.leftOffset = -1;
@@ -36,9 +45,16 @@ public class VoxelChunk {
         this.backOffset = width;
         this.widthTimesHeight = width * height;
 
+        this.offset.set(x, y, z);
+
+        generateMesh();
+        generateHeightMap();
+    }
+
+    public void generateMesh(){
         this.mesh = new Mesh(true, width * height * depth * VERTEX_SIZE * 4, width * height
-                * depth * 36 / 3,
-                VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0), VertexAttribute.ColorUnpacked());
+            * depth * 36 / 3,
+            VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0), VertexAttribute.ColorUnpacked());
 
         int len = width * height * depth * 6 * 6 / 3;
         short[] indices = new short[len];
@@ -53,7 +69,21 @@ public class VoxelChunk {
         }
 
         this.mesh.setIndices(indices);
+        this.numVertices = 0;
+    }
 
+    public void generateHeightMap(){
+        for(int x = 0; x < width; x++){
+            for(int z = 0; z < depth; z++){
+                int heightMap = (int) (fastNoiseLite.GetNoise(offset.x + x, offset.z + z) * 32 - offset.y);
+
+                for(int y = 0; y < Math.min(heightMap, height); y++){
+                    set(x, y%CHUNK_SIZE_Y, z, (byte) 1);
+                }
+            }
+        }
+
+        this.generated = true;
         this.dirty = true;
     }
 
@@ -118,44 +148,51 @@ public class VoxelChunk {
                 }
             }
         }
+
         return vertexOffset / VERTEX_SIZE;
     }
 
     private boolean renderTop(int index, int x, int z, int y) {
-        if(y == height-1)
-            return true;
+        if(y == height-1) {
+            return World.INSTANCE.get(offset.x + x, offset.y + y + 1, offset.z + z) == 0;
+        }
 
         return voxels[index + topOffset] == 0;
     }
     private boolean renderBottom(int index, int x, int z, int y) {
-        if(y == 0)
-            return true;
+        if(y == 0) {
+            return World.INSTANCE.get(offset.x + x, offset.y + y - 1, offset.z + z) == 0;
+        }
 
         return voxels[index + bottomOffset] == 0;
     }
     private boolean renderLeft(int index, int x, int z, int y) {
-        if(x == 0)
-            return true;
+        if(x == 0) {
+            return World.INSTANCE.get(offset.x + x - 1, offset.y + y, offset.z + z) == 0;
+        }
 
         return voxels[index + leftOffset] == 0;
 
     }
     private boolean renderRight(int index, int x, int z, int y) {
-        if(x == width-1)
-            return true;
+        if(x == width-1) {
+            return World.INSTANCE.get(offset.x + x + 1, offset.y + y, offset.z + z) == 0;
+        }
 
         return voxels[index + rightOffset] == 0;
     }
     private boolean renderFront(int index, int x, int z, int y) {
-        if(z == 0)
-            return true;
+        if(z == 0) {
+            return World.INSTANCE.get(offset.x + x, offset.y + y, offset.z + z - 1) == 0;
+        }
 
         return voxels[index + frontOffset] == 0;
 
     }
     private boolean renderBack(int index, int x, int z, int y) {
-        if(z == depth-1)
-            return true;
+        if(z == depth-1) {
+            return World.INSTANCE.get(offset.x + x, offset.y + y, offset.z + z + 1) == 0;
+        }
 
         return voxels[index + backOffset] == 0;
     }
@@ -510,5 +547,32 @@ public class VoxelChunk {
 
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
+    }
+
+    public int getNumVertices() {
+        return numVertices;
+    }
+
+    public void setNumVertices(int numVertices) {
+        this.numVertices = numVertices;
+    }
+
+    public boolean isGenerated() {
+        return generated;
+    }
+
+    public void setGenerated(boolean generated) {
+        this.generated = generated;
+    }
+
+    @Override
+    public void dispose() {
+        if(mesh != null) {
+            mesh.dispose();
+        }
+    }
+
+    public boolean isVisible(Vector3 chunkPosition) {
+        return Math.abs(getChunkPosition(offset).dst(chunkPosition)) <= RENDER_DISTANCE;
     }
 }
