@@ -8,9 +8,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.Pool;
+import com.badlogic.gdx.utils.*;
 import com.mygdx.game.Player;
 import com.mygdx.game.VoxelGame;
 
@@ -25,7 +23,7 @@ public class World implements RenderableProvider, Disposable {
     public static World INSTANCE;
 
 
-    public final Map<Vector3, Chunk> chunks = new HashMap<>();
+    public final ArrayMap<Vector3, Chunk> chunks = new ArrayMap<>();
     public float[] vertices;
     public int renderedChunks;
     private final TextureRegion[] tiles;
@@ -44,13 +42,17 @@ public class World implements RenderableProvider, Disposable {
         this.player = player;
     }
 
+    public void set(Vector3 position, byte voxel) {
+        set(position.x, position.y, position.z, voxel);
+    }
+
     public void set (float x, float y, float z, byte voxel) {
-        int ix = (int)x;
-        int iy = (int)y;
-        int iz = (int)z;
-        int chunkX = ix / CHUNK_SIZE_X;
-        int chunkY = iy / CHUNK_SIZE_Y;
-        int chunkZ = iz / CHUNK_SIZE_Z;
+        int ix = (int)Math.floor(x);
+        int iy = (int)Math.floor(y);
+        int iz = (int)Math.floor(z);
+        int chunkX = (int) Math.floor(x / CHUNK_SIZE_X);
+        int chunkY = (int) Math.floor(y / CHUNK_SIZE_Y);
+        int chunkZ = (int) Math.floor(z / CHUNK_SIZE_Z);
 
         Chunk chunk;
 
@@ -58,8 +60,7 @@ public class World implements RenderableProvider, Disposable {
             return;
         }
 
-        chunk.set(ix % CHUNK_SIZE_X, iy % CHUNK_SIZE_Y, iz % CHUNK_SIZE_Z,
-                voxel);
+        chunk.set(Math.floorMod(ix, CHUNK_SIZE_X), Math.floorMod(iy, CHUNK_SIZE_Y), Math.floorMod(iz, CHUNK_SIZE_Z), voxel);
     }
 
     public byte get (Vector3 position) {
@@ -106,7 +107,7 @@ public class World implements RenderableProvider, Disposable {
                             continue;
                         }
 
-                        Chunk chunk = new Chunk(position.x * CHUNK_SIZE_X, position.y * CHUNK_SIZE_Y, position.z * CHUNK_SIZE_Z);
+                        Chunk chunk = new Chunk(position, position.x * CHUNK_SIZE_X, position.y * CHUNK_SIZE_Y, position.z * CHUNK_SIZE_Z);
 
                         chunks.put(position, chunk);
                     }
@@ -125,16 +126,12 @@ public class World implements RenderableProvider, Disposable {
 
         List<Vector3> toRemove = new ArrayList<>();
 
-        for (Map.Entry<Vector3, Chunk> entry : chunks.entrySet()) {
-            Chunk chunk = entry.getValue();
+        for (ObjectMap.Entry<Vector3, Chunk> entry : chunks.entries()) {
+            Chunk chunk = entry.value;
 
             if(!chunk.isVisible(getChunkPosition(player.getPosition()))){
                 chunk.dispose();
-                toRemove.add(entry.getKey());
-                continue;
-            }
-
-            if(!chunk.isGenerated()) {
+                toRemove.add(entry.key);
                 continue;
             }
 
@@ -161,13 +158,13 @@ public class World implements RenderableProvider, Disposable {
             renderedChunks++;
         }
 
-        toRemove.forEach(chunks::remove);
+        toRemove.forEach(chunks::removeKey);
     }
 
     @Override
     public void dispose() {
-        chunks.forEach((key, chunk)->{
-            chunk.dispose();
+        chunks.forEach((entry)->{
+            entry.value.dispose();
         });
     }
 }

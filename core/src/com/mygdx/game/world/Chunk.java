@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.mygdx.game.block.Block;
 import com.mygdx.game.utils.Constants;
@@ -16,6 +17,7 @@ public class Chunk implements Disposable {
     public final int height;
     public final int depth;
     public final Vector3 offset = new Vector3();
+    public final Vector3 chunkPosition = new Vector3();
     private final int widthTimesHeight;
     private final int topOffset;
     private final int bottomOffset;
@@ -30,7 +32,7 @@ public class Chunk implements Disposable {
 
     private boolean generated;
 
-    public Chunk(float x, float y, float z) {
+    public Chunk(Vector3 chunkPosition, float x, float y, float z) {
         this.width = CHUNK_SIZE_X;
         this.height = CHUNK_SIZE_Y;
         this.depth = CHUNK_SIZE_Z;
@@ -46,6 +48,7 @@ public class Chunk implements Disposable {
         this.widthTimesHeight = width * height;
 
         this.offset.set(x, y, z);
+        this.chunkPosition.set(chunkPosition);
 
         generateMesh();
         generateHeightMap();
@@ -75,10 +78,17 @@ public class Chunk implements Disposable {
     public void generateHeightMap(){
         for(int x = 0; x < width; x++){
             for(int z = 0; z < depth; z++){
-                int heightMap = (int) (fastNoiseLite.GetNoise(offset.x + x, offset.z + z) * 32 - offset.y);
+                int heightMap = (int) (fastNoiseLite.GetNoise(offset.x + x, offset.z + z) * 32);
+                for(int y = 0; y < Math.min(heightMap-offset.y, height); y++){
+                    float actualHeight = offset.y + y;
 
-                for(int y = 0; y < Math.min(heightMap, height); y++){
-                    set(x, y%CHUNK_SIZE_Y, z, (byte) 1);
+                    if(heightMap - actualHeight == 1){
+                        setFast(x, y, z, (byte) 1);
+                    } else if(heightMap - actualHeight < 6){
+                        setFast(x, y, z, (byte) 2);
+                    } else {
+                        setFast(x, y, z, (byte) 3);
+                    }
                 }
             }
         }
@@ -103,10 +113,55 @@ public class Chunk implements Disposable {
         if (y < 0 || y >= height) return;
         if (z < 0 || z >= depth) return;
         setFast(x, y, z, voxel);
+
+        float xDiff = 0;
+        float yDiff = 0;
+        float zDiff = 0;
+
+        if(x == 0){
+            xDiff--;
+        } else if(x == width-1){
+            xDiff++;
+        }
+
+        if(y == 0){
+            yDiff--;
+        } else if(y == height-1){
+            yDiff++;
+        }
+
+        if(z == 0){
+            zDiff--;
+        } else if(z == depth-1){
+            zDiff++;
+        }
+
+        if(xDiff == 0 && yDiff == 0 && zDiff == 0){
+            return;
+        }
+
+        Array<Vector3> neighbors = new Array<>();
+
+        neighbors.add(new Vector3(xDiff, yDiff, zDiff));
+        neighbors.add(new Vector3(xDiff, yDiff, 0));
+        neighbors.add(new Vector3(xDiff, 0, zDiff));
+        neighbors.add(new Vector3(xDiff, 0, 0));
+        neighbors.add(new Vector3(0, yDiff, zDiff));
+        neighbors.add(new Vector3(0, yDiff, 0));
+        neighbors.add(new Vector3(0, 0, zDiff));
+
+        neighbors.forEach(pos -> {
+            Chunk neighbor = World.INSTANCE.chunks.get(pos.add(chunkPosition));
+
+            if(neighbor != null){
+                neighbor.dirty = true;
+            }
+        });
     }
 
     public void setFast (int x, int y, int z, byte voxel) {
         voxels[x + z * width + y * widthTimesHeight] = voxel;
+        dirty = true;
     }
 
     /** Creates a mesh out of the chunk, returning the number of indices produced

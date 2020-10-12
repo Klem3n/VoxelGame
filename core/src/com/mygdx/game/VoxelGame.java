@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.*;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.mygdx.game.world.World;
 
 public class VoxelGame extends ApplicationAdapter {
@@ -25,16 +27,19 @@ public class VoxelGame extends ApplicationAdapter {
 	Player player;
 	World world;
 
+	Image crosshair;
+
 	public static Material MATERIAL;
 
 	@Override
 	public void create () {
+		crosshair = new Image(new Texture("crosshair.png"));
 		spriteBatch = new SpriteBatch();
 		font = new BitmapFont();
 		modelBatch = new ModelBatch();
 		DefaultShader.defaultCullFace = GL20.GL_FRONT;
-		camera = new PerspectiveCamera(67, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		camera.near = 0.5f;
+		camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		camera.near = 0.1f;
 		camera.far = 1000;
 		player = new Player(camera);
 		Gdx.input.setInputProcessor(player);
@@ -58,6 +63,8 @@ public class VoxelGame extends ApplicationAdapter {
 		float camZ = 0;
 		float camY = world.getHighest(camX, camZ) + 1.5f;
 		camera.position.set(camX, camY, camZ);
+
+		Gdx.input.setCursorCatched(true);
 	}
 
 	@Override
@@ -72,6 +79,10 @@ public class VoxelGame extends ApplicationAdapter {
 		spriteBatch.begin();
 		font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() +
 				"            Position: " + (int)camera.position.x + ", " + (int)camera.position.y + ", " + (int)camera.position.z, 0, 20);
+
+		crosshair.setPosition(Gdx.graphics.getWidth()/2 - crosshair.getWidth()/2, Gdx.graphics.getHeight()/2 - crosshair.getHeight()/2);
+		crosshair.draw(spriteBatch, 1f);
+
 		spriteBatch.end();
 	}
 	
