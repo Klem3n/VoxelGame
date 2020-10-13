@@ -18,12 +18,12 @@ public class Chunk implements Disposable {
     public final Vector3 offset = new Vector3();
     public final Vector3 chunkPosition = new Vector3();
     private final int widthTimesHeight;
-    private final int topOffset;
-    private final int bottomOffset;
-    private final int leftOffset;
-    private final int rightOffset;
-    private final int frontOffset;
-    private final int backOffset;
+    public final int topOffset;
+    public final int bottomOffset;
+    public final int leftOffset;
+    public final int rightOffset;
+    public final int frontOffset;
+    public final int backOffset;
 
     private int numVertices;
     private Mesh mesh;
@@ -172,7 +172,7 @@ public class Chunk implements Disposable {
 
     /** Creates a mesh out of the chunk, returning the number of indices produced
      * @return the number of vertices produced */
-    public int calculateVertices(float[] vertices, TextureRegion[][] tiles) {
+    public int calculateVertices(float[] vertices) {
         int i = 0;
         int vertexOffset = 0;
         for (int y = 0; y < height; y++) {
@@ -184,130 +184,12 @@ public class Chunk implements Disposable {
 
                     if (blockType == null || blockType.equals(BlockType.AIR)) continue;
 
-                    TextureRegion topTexture = tiles[blockType.getTopTexture()/tiles.length][blockType.getTopTexture()%tiles[0].length];
-                    TextureRegion bottomTexture = tiles[blockType.getBottomTexture()/tiles.length][blockType.getBottomTexture()%tiles[0].length];
-                    TextureRegion sideTexture = tiles[blockType.getBottomTexture()/tiles.length][blockType.getSideTexture()%tiles[0].length];
-
-                    if(renderTop(i, x, z, y)){
-                        vertexOffset = createTop(offset, x, y, z, vertices, vertexOffset, topTexture, blockType);
-                    }
-                    if(renderBottom(i, x, z, y)){
-                        vertexOffset = createBottom(offset, x, y, z, vertices, vertexOffset, bottomTexture, blockType);
-                    }
-                    if(renderLeft(i, x, z, y)){
-                        vertexOffset = createLeft(offset, x, y, z, vertices, vertexOffset, sideTexture, blockType);
-                    }
-                    if(renderRight(i, x, z, y)){
-                        vertexOffset = createRight(offset, x, y, z, vertices, vertexOffset, sideTexture, blockType);
-                    }
-                    if(renderFront(i, x, z, y)){
-                        vertexOffset = createFront(offset, x, y, z, vertices, vertexOffset, sideTexture, blockType);
-                    }
-                    if(renderBack(i, x, z, y)){
-                        vertexOffset = createBack(offset, x, y, z, vertices, vertexOffset, sideTexture, blockType);
-                    }
+                    vertexOffset = blockType.render(vertices, vertexOffset, this, x, y, z);
                 }
             }
         }
 
         return vertexOffset / VERTEX_SIZE;
-    }
-
-    private boolean renderTop(int index, int x, int z, int y) {
-        BlockType render = BlockType.getById(voxels[index]);
-        BlockType blockType;
-
-        if(y == height-1) {
-            blockType = World.INSTANCE.get(offset.x + x, offset.y + y + 1, offset.z + z);
-        } else {
-            blockType = BlockType.getById(voxels[index + topOffset]);
-        }
-
-        if(!render.isSolid() && render == blockType){
-            return false;
-        } else {
-            return !blockType.isSolid();
-        }
-    }
-    private boolean renderBottom(int index, int x, int z, int y) {
-        BlockType render = BlockType.getById(voxels[index]);
-        BlockType blockType;
-
-        if(y == 0) {
-            blockType = World.INSTANCE.get(offset.x + x, offset.y + y - 1, offset.z + z);
-        } else {
-            blockType = BlockType.getById(voxels[index + bottomOffset]);
-        }
-
-        if(!render.isSolid() && render == blockType){
-            return false;
-        } else {
-            return !blockType.isSolid();
-        }
-    }
-    private boolean renderLeft(int index, int x, int z, int y) {
-        BlockType render = BlockType.getById(voxels[index]);
-        BlockType blockType;
-
-        if(x == 0) {
-            blockType = World.INSTANCE.get(offset.x + x - 1, offset.y + y, offset.z + z);
-        } else {
-            blockType = BlockType.getById(voxels[index + leftOffset]);
-        }
-
-        if(!render.isSolid() && render == blockType){
-            return false;
-        } else {
-            return !blockType.isSolid();
-        }
-    }
-    private boolean renderRight(int index, int x, int z, int y) {
-        BlockType render = BlockType.getById(voxels[index]);
-        BlockType blockType;
-
-        if(x == width-1) {
-            blockType = World.INSTANCE.get(offset.x + x + 1, offset.y + y, offset.z + z);
-        } else {
-            blockType = BlockType.getById(voxels[index + rightOffset]);
-        }
-
-        if(!render.isSolid() && render == blockType){
-            return false;
-        } else {
-            return !blockType.isSolid();
-        }
-    }
-    private boolean renderFront(int index, int x, int z, int y) {
-        BlockType render = BlockType.getById(voxels[index]);
-        BlockType blockType;
-
-        if(z == 0) {
-            blockType = World.INSTANCE.get(offset.x + x, offset.y + y, offset.z + z - 1);
-        } else {
-            blockType = BlockType.getById(voxels[index + frontOffset]);
-        }
-
-        if(!render.isSolid() && render == blockType){
-            return false;
-        } else {
-            return !blockType.isSolid();
-        }
-    }
-    private boolean renderBack(int index, int x, int z, int y) {
-        BlockType render = BlockType.getById(voxels[index]);
-        BlockType blockType;
-
-        if(z == depth-1) {
-            blockType = World.INSTANCE.get(offset.x + x, offset.y + y, offset.z + z + 1);
-        } else {
-            blockType = BlockType.getById(voxels[index + backOffset]);
-        }
-
-        if(!render.isSolid() && render == blockType){
-            return false;
-        } else {
-            return !blockType.isSolid();
-        }
     }
 
     public static int createTop (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
@@ -687,5 +569,13 @@ public class Chunk implements Disposable {
 
     public boolean isVisible(Vector3 chunkPosition) {
         return Math.abs(getChunkPosition(offset).dst(chunkPosition)) <= RENDER_DISTANCE;
+    }
+
+    public BlockType getBlock(int x, int y, int z) {
+        if(x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth){
+            return BlockType.getById(voxels[x + z * width + y * widthTimesHeight]);
+        }
+
+        return World.INSTANCE.get(offset.cpy().add(x, y, z));
     }
 }

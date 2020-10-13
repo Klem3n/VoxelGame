@@ -25,7 +25,7 @@ public class World implements RenderableProvider, Disposable {
     public final Map<Vector3, Chunk> chunks = new ConcurrentHashMap<>();
     public float[] vertices;
     public int renderedChunks;
-    private final TextureRegion[][] tiles;
+    public static TextureRegion[][] TEXTURE_TILES;
 
     private final Player player;
 
@@ -34,7 +34,7 @@ public class World implements RenderableProvider, Disposable {
     public World(TextureRegion[][] tiles, Player player) {
         INSTANCE = this;
 
-        this.tiles = tiles;
+        TEXTURE_TILES = tiles;
 
         this.vertices = new float[12 * VERTEX_SIZE * CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z];
 
@@ -141,7 +141,7 @@ public class World implements RenderableProvider, Disposable {
             }
 
             if (chunk.isDirty()) {
-                int numVerts = chunk.calculateVertices(vertices, tiles);
+                int numVerts = chunk.calculateVertices(vertices);
                 chunk.setNumVertices(numVerts / 4 * VERTEX_SIZE);
                 mesh.setVertices(vertices, 0, numVerts * VERTEX_SIZE);
                 chunk.setDirty(false);
