@@ -4,11 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntIntMap;
+import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.collision.CollisionRay;
+import com.mygdx.game.collision.PlayerBounds;
 import com.mygdx.game.world.World;
 
 /** Takes a {@link Camera} instance and controls it via w,a,s,d and mouse panning.
@@ -28,18 +29,23 @@ public class Player extends InputAdapter {
     private float degreesPerPixel = 0.5f;
     private final Vector3 velocity = new Vector3();
 
-    private float gravity = 0.1f;
+    private float gravity = 0.4f;
     private float maxFallingSpeed = -10f;
-    private float jumpForce = 5f;
+    private float jumpForce = 8f;
 
     private boolean onGround = false;
 
     private final CollisionRay blockDetectionRay;
 
+    private final CollisionRay gravityRay;
+
+    private final PlayerBounds bounds;
+
     public Player (Camera camera) {
         this.camera = camera;
-
+        bounds = new PlayerBounds(this, camera.position);
         blockDetectionRay = new CollisionRay(this.camera.position, this.camera.direction, 3);
+        gravityRay = new CollisionRay(this.camera.position, new Vector3(0, -1, 0), 1.51f, 0.01f);
     }
 
     @Override
@@ -86,24 +92,24 @@ public class Player extends InputAdapter {
         }
 
         if (mouseY < screenY) {
-            if (camera.direction.y > -0.965) {
+            if (camera.direction.y > -0.900) {
                 camera.rotate(camera.direction.cpy().crs(Vector3.Y), -1 * magY * rotSpeed);
             }
 
-            if (camera.direction.y < -0.965) {
-                camera.direction.y = -0.965f;
+            if (camera.direction.y < -0.900) {
+                camera.direction.y = -0.900f;
             }
 
             camera.update();
         }
 
         if (mouseY > screenY) {
-            if (camera.direction.y < 0.965) {
+            if (camera.direction.y < 0.900) {
                 camera.rotate(camera.direction.cpy().crs(Vector3.Y), 1 * magY * rotSpeed);
             }
 
-            if (camera.direction.y > 0.965) {
-                camera.direction.y = 0.965f;
+            if (camera.direction.y > 0.900) {
+                camera.direction.y = 0.900f;
             }
 
             camera.update();
@@ -121,10 +127,10 @@ public class Player extends InputAdapter {
          Block destroy
          */
         if(button == 0){
-            WorldBlock block = new CollisionRay(this.camera.position, this.camera.direction, 3).trace();
+            WorldBlock block = blockDetectionRay.trace();
 
-            if(block != null){
-                getWorld().set(block.getPosition(), (byte) 0);
+            if(block.getPosition() != null && block.getBlockType() != BlockType.AIR && block.getBlockType() != BlockType.WATER){
+                getWorld().set(block.getPosition(), BlockType.AIR);
             }
         }
 
@@ -144,9 +150,6 @@ public class Player extends InputAdapter {
         if(keys.containsKey(Keys.SHIFT_LEFT)){
             speed *= 2;
         }
-
-        double yaw = Math.toRadians(camera.direction.x);
-        double yaw90 = Math.toRadians(camera.direction.x + 90);
 
         Vector3 transform = new Vector3();
 
@@ -170,6 +173,7 @@ public class Player extends InputAdapter {
             transform.crs(camera.up);
             transform.nor().scl(speed);
         }
+
         if(keys.containsKey(ESCAPE)){
             keys.remove(ESCAPE, 0);
 
@@ -181,41 +185,50 @@ public class Player extends InputAdapter {
         velocity.add(transform);
 
         if(keys.containsKey(JUMP) && onGround){
-            keys.remove(JUMP, 0);
             velocity.y = jumpForce;
         }
 
-        if(!onGround){
+        //if(!onGround){
            velocity.y -= gravity;
 
            if(velocity.y < maxFallingSpeed){
                velocity.y = maxFallingSpeed;
            }
-        } else if(velocity.y < 0){
+        /*} else if(velocity.y < 0){
             velocity.y = 0;
-        }
+        }*/
 
-        camera.position.add(velocity.cpy().scl(deltaTime));
+        Vector3 velocity = this.velocity.cpy().scl(deltaTime);
 
-        collisionDetection();
+        collisionDetection(velocity);
+
+        onGround = velocity.y == 0;
+
+        camera.position.add(velocity);
 
         camera.update(true);
     }
 
-    private void collisionDetection() {
-        byte block = World.INSTANCE.get(getPosition().cpy().add(0f, -1.6f, 0f));
+    private void collisionDetection(Vector3 velocity) {
+        WorldBlock block = gravityRay.trace();
 
-        if(block == 0){
-            onGround = false;
-        } else {
-            onGround = true;
+        if(block.getPosition() == null || !block.getBlockType().isSolid()){
+            //onGround = false;
         }
 
-
+        bounds.checkCollision(velocity);
     }
 
     public Vector3 getPosition(){
         return camera.position;
+    }
+
+    public boolean isOnGround() {
+        return onGround;
+    }
+
+    public void setOnGround(boolean onGround) {
+        this.onGround = onGround;
     }
 
     public World getWorld(){

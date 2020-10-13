@@ -1,42 +1,47 @@
 package com.mygdx.game.collision;
 
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.math.collision.Ray;
-import com.mygdx.game.block.Block;
+import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.world.World;
 
-public class CollisionRay extends Ray {
+public class CollisionRay {
+
+    final Vector3 origin;
+    final Vector3 direction;
 
     final float distance;
+    final float step;
+
+    public CollisionRay(final Vector3 origin, final Vector3 direction, final float distance, final float step){
+        this.origin = origin;
+        this.direction = direction;
+        this.distance = distance;
+        this.step = step;
+    }
 
     public CollisionRay(final Vector3 origin, final Vector3 direction, final float distance){
-        super(origin, direction);
-
-        this.distance = distance;
+        this(origin, direction, distance, 0.1f);
     }
 
     public WorldBlock trace(){
         final World world = World.INSTANCE;
 
-        Block block = Block.AIR;
+        BlockType blockType = BlockType.AIR;
 
-        final Vector3 toVec = new Vector3();
+        Vector3 toVec = null;
 
-        for(float i = 0f; i < distance; i += 0.1f){
-            toVec.set(direction).scl(i).add(origin);
+        for(float i = 0f; i < distance; i += step){
+            toVec = direction.cpy();
+            toVec.scl(i).add(origin);
 
-            byte b = world.get(toVec);
+            blockType = world.get(toVec);
 
-            if(b != 0){
-                block = Block.getById(b);
+            if(blockType != BlockType.AIR) {
                 break;
             }
         }
 
-        if(block == Block.AIR)
-            return null;
-
-        return new WorldBlock(toVec, block);
+        return new WorldBlock(toVec, blockType);
     }
 }

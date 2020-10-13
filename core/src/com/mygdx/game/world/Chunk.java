@@ -6,8 +6,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
-import com.mygdx.game.block.Block;
-import com.mygdx.game.utils.Constants;
+import com.mygdx.game.block.BlockType;
 
 import static com.mygdx.game.utils.Constants.*;
 
@@ -79,15 +78,22 @@ public class Chunk implements Disposable {
         for(int x = 0; x < width; x++){
             for(int z = 0; z < depth; z++){
                 int heightMap = (int) (fastNoiseLite.GetNoise(offset.x + x, offset.z + z) * 32);
-                for(int y = 0; y < Math.min(heightMap-offset.y, height); y++){
+
+                for(int y = 0; y < height; y++){
                     float actualHeight = offset.y + y;
 
-                    if(heightMap - actualHeight == 1){
-                        setFast(x, y, z, (byte) 1);
-                    } else if(heightMap - actualHeight < 6){
-                        setFast(x, y, z, (byte) 2);
+                    if(actualHeight > heightMap){
+                        if(actualHeight < 0){
+                            setFast(x, y, z, BlockType.WATER);
+                        }
                     } else {
-                        setFast(x, y, z, (byte) 3);
+                        if(heightMap - actualHeight == 0){
+                            setFast(x, y, z, BlockType.GRASS);
+                        } else if(heightMap - actualHeight < 6){
+                            setFast(x, y, z, BlockType.DIRT);
+                        } else {
+                            setFast(x, y, z, BlockType.STONE);
+                        }
                     }
                 }
             }
@@ -97,22 +103,22 @@ public class Chunk implements Disposable {
         this.dirty = true;
     }
 
-    public byte get (int x, int y, int z) {
-        if (x < 0 || x >= width) return 0;
-        if (y < 0 || y >= height) return 0;
-        if (z < 0 || z >= depth) return 0;
+    public BlockType get (int x, int y, int z) {
+        if (x < 0 || x >= width) return BlockType.AIR;
+        if (y < 0 || y >= height) return BlockType.AIR;
+        if (z < 0 || z >= depth) return BlockType.AIR;
         return getFast(x, y, z);
     }
 
-    public byte getFast (int x, int y, int z) {
-        return voxels[x + z * width + y * widthTimesHeight];
+    public BlockType getFast (int x, int y, int z) {
+        return BlockType.getById(voxels[x + z * width + y * widthTimesHeight]);
     }
 
-    public void set (int x, int y, int z, byte voxel) {
+    public void set (int x, int y, int z, BlockType blockType) {
         if (x < 0 || x >= width) return;
         if (y < 0 || y >= height) return;
         if (z < 0 || z >= depth) return;
-        setFast(x, y, z, voxel);
+        setFast(x, y, z, blockType);
 
         float xDiff = 0;
         float yDiff = 0;
@@ -159,14 +165,14 @@ public class Chunk implements Disposable {
         });
     }
 
-    public void setFast (int x, int y, int z, byte voxel) {
-        voxels[x + z * width + y * widthTimesHeight] = voxel;
+    public void setFast (int x, int y, int z, BlockType blockType) {
+        voxels[x + z * width + y * widthTimesHeight] = (byte) blockType.getId();
         dirty = true;
     }
 
     /** Creates a mesh out of the chunk, returning the number of indices produced
      * @return the number of vertices produced */
-    public int calculateVertices(float[] vertices, TextureRegion[] tiles) {
+    public int calculateVertices(float[] vertices, TextureRegion[][] tiles) {
         int i = 0;
         int vertexOffset = 0;
         for (int y = 0; y < height; y++) {
@@ -174,31 +180,31 @@ public class Chunk implements Disposable {
                 for (int x = 0; x < width; x++, i++) {
                     byte voxel = voxels[i];
 
-                    Block block = Block.getById(voxel);
+                    BlockType blockType = BlockType.getById(voxel);
 
-                    if (block == null || block.equals(Block.AIR)) continue;
+                    if (blockType == null || blockType.equals(BlockType.AIR)) continue;
 
-                    TextureRegion topTexture = tiles[block.getTopTexture()];
-                    TextureRegion bottomTexture = tiles[block.getBottomTexture()];
-                    TextureRegion sideTexture = tiles[block.getSideTexture()];
+                    TextureRegion topTexture = tiles[blockType.getTopTexture()/tiles.length][blockType.getTopTexture()%tiles[0].length];
+                    TextureRegion bottomTexture = tiles[blockType.getBottomTexture()/tiles.length][blockType.getBottomTexture()%tiles[0].length];
+                    TextureRegion sideTexture = tiles[blockType.getBottomTexture()/tiles.length][blockType.getSideTexture()%tiles[0].length];
 
                     if(renderTop(i, x, z, y)){
-                        vertexOffset = createTop(offset, x, y, z, vertices, vertexOffset, topTexture);
+                        vertexOffset = createTop(offset, x, y, z, vertices, vertexOffset, topTexture, blockType);
                     }
                     if(renderBottom(i, x, z, y)){
-                        vertexOffset = createBottom(offset, x, y, z, vertices, vertexOffset, bottomTexture);
+                        vertexOffset = createBottom(offset, x, y, z, vertices, vertexOffset, bottomTexture, blockType);
                     }
                     if(renderLeft(i, x, z, y)){
-                        vertexOffset = createLeft(offset, x, y, z, vertices, vertexOffset, sideTexture);
+                        vertexOffset = createLeft(offset, x, y, z, vertices, vertexOffset, sideTexture, blockType);
                     }
                     if(renderRight(i, x, z, y)){
-                        vertexOffset = createRight(offset, x, y, z, vertices, vertexOffset, sideTexture);
+                        vertexOffset = createRight(offset, x, y, z, vertices, vertexOffset, sideTexture, blockType);
                     }
                     if(renderFront(i, x, z, y)){
-                        vertexOffset = createFront(offset, x, y, z, vertices, vertexOffset, sideTexture);
+                        vertexOffset = createFront(offset, x, y, z, vertices, vertexOffset, sideTexture, blockType);
                     }
                     if(renderBack(i, x, z, y)){
-                        vertexOffset = createBack(offset, x, y, z, vertices, vertexOffset, sideTexture);
+                        vertexOffset = createBack(offset, x, y, z, vertices, vertexOffset, sideTexture, blockType);
                     }
                 }
             }
@@ -208,51 +214,103 @@ public class Chunk implements Disposable {
     }
 
     private boolean renderTop(int index, int x, int z, int y) {
+        BlockType render = BlockType.getById(voxels[index]);
+        BlockType blockType;
+
         if(y == height-1) {
-            return World.INSTANCE.get(offset.x + x, offset.y + y + 1, offset.z + z) == 0;
+            blockType = World.INSTANCE.get(offset.x + x, offset.y + y + 1, offset.z + z);
+        } else {
+            blockType = BlockType.getById(voxels[index + topOffset]);
         }
 
-        return voxels[index + topOffset] == 0;
+        if(!render.isSolid() && render == blockType){
+            return false;
+        } else {
+            return !blockType.isSolid();
+        }
     }
     private boolean renderBottom(int index, int x, int z, int y) {
+        BlockType render = BlockType.getById(voxels[index]);
+        BlockType blockType;
+
         if(y == 0) {
-            return World.INSTANCE.get(offset.x + x, offset.y + y - 1, offset.z + z) == 0;
+            blockType = World.INSTANCE.get(offset.x + x, offset.y + y - 1, offset.z + z);
+        } else {
+            blockType = BlockType.getById(voxels[index + bottomOffset]);
         }
 
-        return voxels[index + bottomOffset] == 0;
+        if(!render.isSolid() && render == blockType){
+            return false;
+        } else {
+            return !blockType.isSolid();
+        }
     }
     private boolean renderLeft(int index, int x, int z, int y) {
+        BlockType render = BlockType.getById(voxels[index]);
+        BlockType blockType;
+
         if(x == 0) {
-            return World.INSTANCE.get(offset.x + x - 1, offset.y + y, offset.z + z) == 0;
+            blockType = World.INSTANCE.get(offset.x + x - 1, offset.y + y, offset.z + z);
+        } else {
+            blockType = BlockType.getById(voxels[index + leftOffset]);
         }
 
-        return voxels[index + leftOffset] == 0;
-
+        if(!render.isSolid() && render == blockType){
+            return false;
+        } else {
+            return !blockType.isSolid();
+        }
     }
     private boolean renderRight(int index, int x, int z, int y) {
+        BlockType render = BlockType.getById(voxels[index]);
+        BlockType blockType;
+
         if(x == width-1) {
-            return World.INSTANCE.get(offset.x + x + 1, offset.y + y, offset.z + z) == 0;
+            blockType = World.INSTANCE.get(offset.x + x + 1, offset.y + y, offset.z + z);
+        } else {
+            blockType = BlockType.getById(voxels[index + rightOffset]);
         }
 
-        return voxels[index + rightOffset] == 0;
+        if(!render.isSolid() && render == blockType){
+            return false;
+        } else {
+            return !blockType.isSolid();
+        }
     }
     private boolean renderFront(int index, int x, int z, int y) {
+        BlockType render = BlockType.getById(voxels[index]);
+        BlockType blockType;
+
         if(z == 0) {
-            return World.INSTANCE.get(offset.x + x, offset.y + y, offset.z + z - 1) == 0;
+            blockType = World.INSTANCE.get(offset.x + x, offset.y + y, offset.z + z - 1);
+        } else {
+            blockType = BlockType.getById(voxels[index + frontOffset]);
         }
 
-        return voxels[index + frontOffset] == 0;
-
+        if(!render.isSolid() && render == blockType){
+            return false;
+        } else {
+            return !blockType.isSolid();
+        }
     }
     private boolean renderBack(int index, int x, int z, int y) {
+        BlockType render = BlockType.getById(voxels[index]);
+        BlockType blockType;
+
         if(z == depth-1) {
-            return World.INSTANCE.get(offset.x + x, offset.y + y, offset.z + z + 1) == 0;
+            blockType = World.INSTANCE.get(offset.x + x, offset.y + y, offset.z + z + 1);
+        } else {
+            blockType = BlockType.getById(voxels[index + backOffset]);
         }
 
-        return voxels[index + backOffset] == 0;
+        if(!render.isSolid() && render == blockType){
+            return false;
+        } else {
+            return !blockType.isSolid();
+        }
     }
 
-    public static int createTop (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion) {
+    public static int createTop (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + 1;
         vertices[vertexOffset++] = offset.z + z;
@@ -264,7 +322,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -277,7 +335,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -290,7 +348,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -303,12 +361,12 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         return vertexOffset;
     }
 
-    public static int createBottom (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion) {
+    public static int createBottom (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
@@ -320,7 +378,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
@@ -333,7 +391,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
@@ -346,7 +404,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
@@ -359,12 +417,12 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         return vertexOffset;
     }
 
-    public static int createLeft (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion) {
+    public static int createLeft (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
@@ -376,7 +434,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -389,7 +447,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -402,7 +460,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
@@ -415,12 +473,12 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         return vertexOffset;
     }
 
-    public static int createRight (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion) {
+    public static int createRight (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
@@ -432,7 +490,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
@@ -445,7 +503,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -458,7 +516,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -471,12 +529,12 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         return vertexOffset;
     }
 
-    public static int createFront (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion) {
+    public static int createFront (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
@@ -488,7 +546,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
@@ -501,7 +559,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -514,7 +572,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -527,12 +585,12 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         return vertexOffset;
     }
 
-    public static int createBack (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion) {
+    public static int createBack (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z + 1;
@@ -544,7 +602,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -557,7 +615,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y + 1;
@@ -570,7 +628,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
@@ -583,7 +641,7 @@ public class Chunk implements Disposable {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
+        vertices[vertexOffset++] = blockType.getAlpha();
 
         return vertexOffset;
     }

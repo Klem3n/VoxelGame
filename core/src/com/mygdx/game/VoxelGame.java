@@ -57,10 +57,10 @@ public class VoxelGame extends ApplicationAdapter {
 
 		TextureRegion[][] tiles = TextureRegion.split(texture, 32, 32);
 
-		world = new World(tiles[0], player);
+		world = new World(tiles, player);
 
-		float camX = 0;
-		float camZ = 0;
+		float camX = 0.5f;
+		float camZ = 0.5f;
 		float camY = world.getHighest(camX, camZ) + 1.5f;
 		camera.position.set(camX, camY, camZ);
 

@@ -4,11 +4,11 @@ import com.badlogic.gdx.math.Vector3;
 
 public class WorldBlock {
     Vector3 position;
-    Block block;
+    BlockType blockType;
 
-    public WorldBlock(Vector3 position, Block block) {
+    public WorldBlock(Vector3 position, BlockType blockType) {
         this.position = position;
-        this.block = block;
+        this.blockType = blockType;
     }
 
     public Vector3 getPosition() {
@@ -19,19 +19,19 @@ public class WorldBlock {
         this.position = position;
     }
 
-    public Block getBlock() {
-        return block;
+    public BlockType getBlockType() {
+        return blockType;
     }
 
-    public void setBlock(Block block) {
-        this.block = block;
+    public void setBlockType(BlockType blockType) {
+        this.blockType = blockType;
     }
 
     @Override
     public String toString() {
         return "WorldBlock{" +
                 "position= (" + (int)position.x + ", " + (int)position.y + ", " +(int)position.z +
-                "), block=" + block +
+                "), block=" + blockType +
                 '}';
     }
 }
