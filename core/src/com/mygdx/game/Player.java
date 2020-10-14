@@ -25,7 +25,7 @@ public class Player extends InputAdapter {
     private int DOWN = Keys.E;
     private int JUMP = Keys.SPACE;
     private int ESCAPE = Keys.ESCAPE;
-    private float speed = 0.5f;
+    private float speed = 0.4f;
     private float degreesPerPixel = 0.5f;
     private final Vector3 velocity = new Vector3();
 
@@ -36,6 +36,7 @@ public class Player extends InputAdapter {
     private boolean onGround = false;
 
     private final CollisionRay blockDetectionRay;
+    private WorldBlock selectedBlock;
 
     private final CollisionRay gravityRay;
 
@@ -127,10 +128,8 @@ public class Player extends InputAdapter {
          Block destroy
          */
         if(button == 0){
-            WorldBlock block = blockDetectionRay.trace();
-
-            if(block.getPosition() != null && block.getBlockType() != BlockType.AIR && block.getBlockType() != BlockType.WATER){
-                getWorld().set(block.getPosition(), BlockType.AIR);
+            if(selectedBlock != null && selectedBlock.getPosition() != null && selectedBlock.getBlockType() != BlockType.AIR && selectedBlock.getBlockType() != BlockType.WATER){
+                getWorld().set(selectedBlock.getPosition(), BlockType.AIR);
             }
         }
 
@@ -138,6 +137,7 @@ public class Player extends InputAdapter {
     }
 
     public void update () {
+        selectedBlock = blockDetectionRay.trace();
         update(Gdx.graphics.getDeltaTime());
 
         velocity.x *= 0.9f;
@@ -229,6 +229,10 @@ public class Player extends InputAdapter {
 
     public void setOnGround(boolean onGround) {
         this.onGround = onGround;
+    }
+
+    public WorldBlock getSelectedBlock() {
+        return selectedBlock;
     }
 
     public World getWorld(){

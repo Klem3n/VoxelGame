@@ -39,7 +39,7 @@ public class VoxelGame extends ApplicationAdapter {
 		modelBatch = new ModelBatch();
 		DefaultShader.defaultCullFace = GL20.GL_FRONT;
 		camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		camera.near = 0.1f;
+		camera.near = 0.0001f;
 		camera.far = 1000;
 		player = new Player(camera);
 		Gdx.input.setInputProcessor(player);
@@ -77,7 +77,7 @@ public class VoxelGame extends ApplicationAdapter {
 		player.update();
 
 		spriteBatch.begin();
-		font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() +
+		font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() + " Rendered chunks: " + World.RENDERED_CHUNKS +
 				"            Position: " + (int)camera.position.x + ", " + (int)camera.position.y + ", " + (int)camera.position.z, 0, 20);
 
 		crosshair.setPosition(Gdx.graphics.getWidth()/2 - crosshair.getWidth()/2, Gdx.graphics.getHeight()/2 - crosshair.getHeight()/2);

@@ -1,15 +1,13 @@
 package com.mygdx.game.world;
 
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.*;
 import com.mygdx.game.Player;
-import com.mygdx.game.VoxelGame;
 import com.mygdx.game.block.BlockType;
+import com.mygdx.game.block.impl.SelectedBlockRenderer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,22 +21,23 @@ public class World implements RenderableProvider, Disposable {
 
 
     public final Map<Vector3, Chunk> chunks = new ConcurrentHashMap<>();
-    public float[] vertices;
-    public int renderedChunks;
+    public static int RENDERED_CHUNKS;
     public static TextureRegion[][] TEXTURE_TILES;
 
     private final Player player;
 
     private Vector3 lastUpdatePosition = null;
 
+    private boolean isRunning;
+
     public World(TextureRegion[][] tiles, Player player) {
         INSTANCE = this;
 
         TEXTURE_TILES = tiles;
 
-        this.vertices = new float[12 * VERTEX_SIZE * CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z];
-
         this.player = player;
+
+        isRunning = true;
     }
 
     public void set(Vector3 position, BlockType blockType) {
@@ -77,7 +76,7 @@ public class World implements RenderableProvider, Disposable {
         Chunk chunk;
 
         if((chunk = chunks.get(new Vector3(chunkX, chunkY, chunkZ))) == null){
-            return BlockType.AIR;
+            return null;
         }
 
         return chunk.get(Math.floorMod(ix, CHUNK_SIZE_X), Math.floorMod(iy, CHUNK_SIZE_Y), Math.floorMod(iz, CHUNK_SIZE_Z));
@@ -87,9 +86,11 @@ public class World implements RenderableProvider, Disposable {
         int ix = (int) x;
         int iz = (int) z;
 
-        // FIXME optimize
         for (int y = RENDER_DISTANCE * CHUNK_SIZE_Y - 1; y > 0; y--) {
-            if (get(ix, y, iz) != BlockType.AIR) return y + 2;
+            BlockType blockType = get(ix, y, iz);
+            if (blockType != null && blockType != BlockType.AIR) {
+                return y + 2;
+            }
         }
         return 0;
     }
@@ -119,7 +120,7 @@ public class World implements RenderableProvider, Disposable {
 
     @Override
     public void getRenderables (Array<Renderable> renderables, Pool<Renderable> pool) {
-        renderedChunks = 0;
+        RENDERED_CHUNKS = 0;
 
         updateChunks();
 
@@ -134,34 +135,23 @@ public class World implements RenderableProvider, Disposable {
                 continue;
             }
 
-            Mesh mesh = chunk.getMesh();
-
-            if(mesh == null){
-                continue;
-            }
-
-            if (chunk.isDirty()) {
-                int numVerts = chunk.calculateVertices(vertices);
-                chunk.setNumVertices(numVerts / 4 * VERTEX_SIZE);
-                mesh.setVertices(vertices, 0, numVerts * VERTEX_SIZE);
-                chunk.setDirty(false);
-            }
-            if (chunk.getNumVertices() == 0) continue;
-            Renderable renderable = pool.obtain();
-            renderable.material = VoxelGame.MATERIAL;
-            renderable.meshPart.mesh = mesh;
-            renderable.meshPart.offset = 0;
-            renderable.meshPart.size = chunk.getNumVertices();
-            renderable.meshPart.primitiveType = GL20.GL_TRIANGLES;
-            renderables.add(renderable);
-            renderedChunks++;
+            /**
+             * render chunk
+             */
+            chunk.getRenderables(renderables, pool);
         }
+
+        /**
+         * Renders a box around the block we're aiming at
+         */
+        SelectedBlockRenderer.render(player.getSelectedBlock(), renderables, pool);
 
         toRemove.forEach(chunks::remove);
     }
 
     @Override
     public void dispose() {
+        isRunning = false;
         chunks.forEach((key, entry)->{
             entry.dispose();
         });

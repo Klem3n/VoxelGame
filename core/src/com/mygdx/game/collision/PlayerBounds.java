@@ -2,6 +2,7 @@ package com.mygdx.game.collision;
 
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.Player;
+import com.mygdx.game.block.BlockType;
 import com.mygdx.game.world.World;
 
 public class PlayerBounds extends Bounds {
@@ -24,13 +25,14 @@ public class PlayerBounds extends Bounds {
         Vector3[] blocks = new Vector3[]{position.cpy(), position.cpy().add(0f, -1.5f, 0f)};
 
         for (Vector3 block : blocks) {
-            if(world.get(block.cpy().add(x, 0, 0)).isSolid()){
+            BlockType blockType;
+            if((blockType = world.get(block.cpy().add(x, 0, 0))) != null && blockType.isSolid()){
                 x = 0;
             }
-            if(world.get(block.cpy().add(0, y, 0)).isSolid()){
+            if((blockType = world.get(block.cpy().add(0, y, 0))) != null && blockType.isSolid()){
                 y = 0;
             }
-            if(world.get(block.cpy().add(0, 0, z)).isSolid()){
+            if((blockType = world.get(block.cpy().add(0, 0, z))) != null && blockType.isSolid()){
                 z = 0;
             }
         }

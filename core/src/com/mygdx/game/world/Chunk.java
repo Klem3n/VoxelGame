@@ -1,16 +1,25 @@
 package com.mygdx.game.world;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g3d.Renderable;
+import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.Pool;
+import com.mygdx.game.VoxelGame;
 import com.mygdx.game.block.BlockType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.mygdx.game.utils.Constants.*;
 
-public class Chunk implements Disposable {
+public class Chunk implements Disposable, RenderableProvider {
     public final byte[] voxels;
     public final int width;
     public final int height;
@@ -25,11 +34,17 @@ public class Chunk implements Disposable {
     public final int frontOffset;
     public final int backOffset;
 
-    private int numVertices;
     private Mesh mesh;
     private boolean dirty;
 
     private boolean generated;
+
+    /**
+     * Amount of vertices generated for this chunk
+     */
+    private int vertAmount = 0;
+
+    public static float[] VERTICES = new float[VERTEX_SIZE*6*CHUNK_SIZE_X*CHUNK_SIZE_Y*CHUNK_SIZE_Z];
 
     public Chunk(Vector3 chunkPosition, float x, float y, float z) {
         this.width = CHUNK_SIZE_X;
@@ -55,10 +70,10 @@ public class Chunk implements Disposable {
 
     public void generateMesh(){
         this.mesh = new Mesh(true, width * height * depth * VERTEX_SIZE * 4, width * height
-            * depth * 36 / 3,
+            * depth * 36,
             VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0), VertexAttribute.ColorUnpacked());
 
-        int len = width * height * depth * 6 * 6 / 3;
+        int len = width * height * depth * 6 * 6;
         short[] indices = new short[len];
         short j = 0;
         for (int i = 0; i < len; i += 6, j += 4) {
@@ -71,7 +86,6 @@ public class Chunk implements Disposable {
         }
 
         this.mesh.setIndices(indices);
-        this.numVertices = 0;
     }
 
     public void generateHeightMap(){
@@ -83,11 +97,13 @@ public class Chunk implements Disposable {
                     float actualHeight = offset.y + y;
 
                     if(actualHeight > heightMap){
-                        if(actualHeight < 0){
+                        if(actualHeight <=0){
                             setFast(x, y, z, BlockType.WATER);
                         }
                     } else {
                         if(heightMap - actualHeight == 0){
+                            setFast(x, y, z, BlockType.GRASS);
+                        } else if(heightMap - actualHeight == 1){
                             setFast(x, y, z, BlockType.GRASS);
                         } else if(heightMap - actualHeight < 6){
                             setFast(x, y, z, BlockType.DIRT);
@@ -189,342 +205,6 @@ public class Chunk implements Disposable {
             }
         }
 
-        return vertexOffset / VERTEX_SIZE;
-    }
-
-    public static int createTop (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        return vertexOffset;
-    }
-
-    public static int createBottom (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        return vertexOffset;
-    }
-
-    public static int createLeft (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        return vertexOffset;
-    }
-
-    public static int createRight (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        return vertexOffset;
-    }
-
-    public static int createFront (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        return vertexOffset;
-    }
-
-    public static int createBack (Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = textureRegion.getU();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y + 1;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
-        vertices[vertexOffset++] = offset.x + x + 1;
-        vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + 1;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = 0;
-        vertices[vertexOffset++] = -1;
-        vertices[vertexOffset++] = textureRegion.getU2();
-        vertices[vertexOffset++] = textureRegion.getV2();
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
-
         return vertexOffset;
     }
 
@@ -542,14 +222,6 @@ public class Chunk implements Disposable {
 
     public void setDirty(boolean dirty) {
         this.dirty = dirty;
-    }
-
-    public int getNumVertices() {
-        return numVertices;
-    }
-
-    public void setNumVertices(int numVertices) {
-        this.numVertices = numVertices;
     }
 
     public boolean isGenerated() {
@@ -577,5 +249,34 @@ public class Chunk implements Disposable {
         }
 
         return World.INSTANCE.get(offset.cpy().add(x, y, z));
+    }
+
+    @Override
+    public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
+        if(mesh == null){
+            return;
+        }
+
+        if (dirty) {
+            render();
+        }
+
+        if (vertAmount <= 0) return;
+
+        Renderable renderable = pool.obtain();
+        renderable.material = VoxelGame.MATERIAL;
+        renderable.meshPart.mesh = mesh;
+        renderable.meshPart.offset = 0;
+        renderable.meshPart.size = vertAmount;
+        renderable.meshPart.primitiveType = GL20.GL_TRIANGLES;
+        renderables.add(renderable);
+        World.RENDERED_CHUNKS++;
+    }
+
+    public void render() {
+        int numVerts = calculateVertices(VERTICES);
+        mesh.setVertices(VERTICES, 0, numVerts);
+        this.vertAmount = numVerts / 4;
+        dirty = false;
     }
 }

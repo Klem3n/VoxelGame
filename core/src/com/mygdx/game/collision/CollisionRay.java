@@ -37,8 +37,12 @@ public class CollisionRay {
 
             blockType = world.get(toVec);
 
-            if(blockType != BlockType.AIR) {
-                break;
+            if(blockType != null && blockType != BlockType.AIR && blockType != BlockType.WATER) {
+                if(blockType.collides(toVec)) {
+                    break;
+                } else {
+                    blockType = BlockType.AIR;
+                }
             }
         }
 
