@@ -38,15 +38,12 @@ public class Player extends InputAdapter {
     private final CollisionRay blockDetectionRay;
     private WorldBlock selectedBlock;
 
-    private final CollisionRay gravityRay;
-
     private final PlayerBounds bounds;
 
     public Player (Camera camera) {
         this.camera = camera;
         bounds = new PlayerBounds(this, camera.position);
         blockDetectionRay = new CollisionRay(this.camera.position, this.camera.direction, 3);
-        gravityRay = new CollisionRay(this.camera.position, new Vector3(0, -1, 0), 1.51f, 0.01f);
     }
 
     @Override
@@ -210,13 +207,13 @@ public class Player extends InputAdapter {
     }
 
     private void collisionDetection(Vector3 velocity) {
-        WorldBlock block = gravityRay.trace();
-
-        if(block.getPosition() == null || !block.getBlockType().isSolid()){
-            //onGround = false;
-        }
+        boolean inAir = velocity.y > 0;
 
         bounds.checkCollision(velocity);
+
+        if(inAir && velocity.y == 0f){
+            this.velocity.y = 0;
+        }
     }
 
     public Vector3 getPosition(){
