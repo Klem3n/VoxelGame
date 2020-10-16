@@ -6,7 +6,7 @@ import com.mygdx.game.world.Chunk;
 import com.mygdx.game.world.World;
 
 public abstract class BlockRenderer {
-    public abstract int render(BlockType type, float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z);
+    public abstract int render(BlockType type, float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z, byte faceMask);
 
     public TextureRegion getTopTexture(BlockType blockType){
         TextureRegion[][] tiles = World.TEXTURE_TILES;
@@ -27,4 +27,6 @@ public abstract class BlockRenderer {
     }
 
     public abstract boolean collides(BlockType blockType, Vector3 position);
+
+    public abstract byte calculateFaceMasks(BlockType blockType, Chunk chunk, int x, int y, int z);
 }

@@ -12,7 +12,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
     public static final FolliageBlockRenderer INSTANCE = new FolliageBlockRenderer();
 
     @Override
-    public int render(BlockType type, float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z) {
+    public int render(BlockType type, float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z, byte faceMask) {
         return renderX(chunk.offset, x, y, z, verticies, vertexOffset, type);
     }
 
@@ -26,6 +26,11 @@ public class FolliageBlockRenderer extends BlockRenderer {
 
         return position.x >= (1 - size) / 2 && position.y < size && position.z >= (1 - size) / 2 &&
                 position.x < size + (1 - size) / 2 && position.z < size + (1 - size) / 2;
+    }
+
+    @Override
+    public byte calculateFaceMasks(BlockType blockType, Chunk chunk, int x, int y, int z) {
+        return 0;
     }
 
     public int renderX(Vector3 offset, float x, float y, float z, float[] vertices, int vertexOffset, BlockType blockType) {

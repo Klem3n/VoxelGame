@@ -20,19 +20,14 @@ import java.util.List;
 import static com.mygdx.game.utils.Constants.*;
 
 public class Chunk implements Disposable, RenderableProvider {
-    public final byte[] voxels;
-    public final int width;
-    public final int height;
-    public final int depth;
+    private final byte[] voxels;
+    private final byte[] faceMasks;
+    private final int width;
+    private final int height;
+    private final int depth;
     public final Vector3 offset = new Vector3();
-    public final Vector3 chunkPosition = new Vector3();
+    private final Vector3 chunkPosition = new Vector3();
     private final int widthTimesHeight;
-    public final int topOffset;
-    public final int bottomOffset;
-    public final int leftOffset;
-    public final int rightOffset;
-    public final int frontOffset;
-    public final int backOffset;
 
     private Mesh mesh;
     private boolean dirty;
@@ -52,13 +47,8 @@ public class Chunk implements Disposable, RenderableProvider {
         this.depth = CHUNK_SIZE_Z;
 
         this.voxels = new byte[width * height * depth];
+        this.faceMasks = new byte[width * height * depth];
 
-        this.topOffset = width * depth;
-        this.bottomOffset = -width * depth;
-        this.leftOffset = -1;
-        this.rightOffset = 1;
-        this.frontOffset = -width;
-        this.backOffset = width;
         this.widthTimesHeight = width * height;
 
         this.offset.set(x, y, z);
@@ -186,6 +176,27 @@ public class Chunk implements Disposable, RenderableProvider {
         dirty = true;
     }
 
+    /**
+     * Updates face masks in the chunk
+     */
+    public void update(){
+        int i = 0;
+        for (int y = 0; y < height; y++) {
+            for (int z = 0; z < depth; z++) {
+                for (int x = 0; x < width; x++, i++) {
+                    byte voxel = voxels[i];
+
+                    BlockType blockType = BlockType.getById(voxel);
+
+                    if(blockType == null || blockType.equals(BlockType.AIR))
+                        continue;
+
+                    faceMasks[i] = blockType.calculateFaceMasks(this, x, y, z);
+                }
+            }
+        }
+    }
+
     /** Creates a mesh out of the chunk, returning the number of indices produced
      * @return the number of vertices produced */
     public int calculateVertices(float[] vertices) {
@@ -195,12 +206,13 @@ public class Chunk implements Disposable, RenderableProvider {
             for (int z = 0; z < depth; z++) {
                 for (int x = 0; x < width; x++, i++) {
                     byte voxel = voxels[i];
+                    byte faceMask = faceMasks[i];
 
                     BlockType blockType = BlockType.getById(voxel);
 
                     if (blockType == null || blockType.equals(BlockType.AIR)) continue;
 
-                    vertexOffset = blockType.render(vertices, vertexOffset, this, x, y, z);
+                    vertexOffset = blockType.render(vertices, vertexOffset, this, x, y, z, faceMask);
                 }
             }
         }
@@ -258,6 +270,7 @@ public class Chunk implements Disposable, RenderableProvider {
         }
 
         if (dirty) {
+            update();
             render();
         }
 

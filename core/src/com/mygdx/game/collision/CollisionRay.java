@@ -6,7 +6,7 @@ import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.world.World;
 
-import java.util.Arrays;
+import static com.mygdx.game.utils.Constants.*;
 
 public class CollisionRay {
 
@@ -23,25 +23,46 @@ public class CollisionRay {
 
     public WorldBlock trace(){
         float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
-        Vector3 voxel = new Vector3();
 
         Vector3 start = origin.cpy();
+        Vector3 voxel = floor(start);
         Vector3 end = direction.cpy().scl(distance).add(origin);
 
         int dx = getSign(end.x - start.x);
-        if (dx != 0) tDeltaX = Math.min(dx / (end.x - start.x), Float.MAX_VALUE); else tDeltaX = Float.MAX_VALUE;
-        if (dx > 0) tMaxX = tDeltaX * frac1(start.x); else tMaxX = tDeltaX * frac0(start.x);
-        voxel.x = (int) Math.floor(start.x);
+        if (dx != 0) {
+            tDeltaX = Math.min(dx / (end.x - start.x), Float.MAX_VALUE);
+        } else {
+            tDeltaX = Float.MAX_VALUE;
+        }
+        if (dx > 0) {
+            tMaxX = tDeltaX * frac1(start.x);
+        } else {
+            tMaxX = tDeltaX * frac0(start.x);
+        }
 
         int dy = getSign(end.y - start.y);
-        if (dy != 0) tDeltaY = Math.min(dy / (end.y - start.y), Float.MAX_VALUE); else tDeltaY = Float.MAX_VALUE;
-        if (dy > 0) tMaxY = tDeltaY * frac1(start.y); else tMaxY = tDeltaY * frac0(start.y);
-        voxel.y = (int) Math.floor(start.y);
+        if (dy != 0) {
+            tDeltaY = Math.min(dy / (end.y - start.y), Float.MAX_VALUE);
+        } else {
+            tDeltaY = Float.MAX_VALUE;
+        }
+        if (dy > 0) {
+            tMaxY = tDeltaY * frac1(start.y);
+        } else {
+            tMaxY = tDeltaY * frac0(start.y);
+        }
 
         int dz = getSign(end.z - start.z);
-        if (dz != 0) tDeltaZ = Math.min(dz / (end.z - start.z), Float.MAX_VALUE); else tDeltaZ = Float.MAX_VALUE;
-        if (dz > 0) tMaxZ = tDeltaZ * frac1(start.z); else tMaxZ = tDeltaZ * frac0(start.z);
-        voxel.z = (int) Math.floor(start.z);
+        if (dz != 0) {
+            tDeltaZ = Math.min(dz / (end.z - start.z), Float.MAX_VALUE);
+        } else {
+            tDeltaZ = Float.MAX_VALUE;
+        }
+        if (dz > 0) {
+            tMaxZ = tDeltaZ * frac1(start.z);
+        } else {
+            tMaxZ = tDeltaZ * frac0(start.z);
+        }
 
         Array<BlockType> passed = new Array<>();
 

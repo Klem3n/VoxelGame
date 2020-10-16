@@ -15,7 +15,7 @@ public enum BlockType {
     COBBLESTONE(4, 1, 1, 1, true, DefaultBlockRenderer.INSTANCE),
     OAK_WOOD(5, 22, 21, 22, true, DefaultBlockRenderer.INSTANCE),
     OAK_LEAVES(6, 53, 53, 53, true, DefaultBlockRenderer.INSTANCE),
-    WATER(7, 205, 206, 206, false, 0.6f, 1f, 1f, 1f, DefaultBlockRenderer.INSTANCE),
+    WATER(7, 205, 206, 206, false, 0.6f, 1f, 0.9f, 1f, DefaultBlockRenderer.INSTANCE),
     ROSE(8, 12, 12, 12, false, 0.5f, FolliageBlockRenderer.INSTANCE),
     DANDELION(9, 13, 13, 13, false, 0.5f, FolliageBlockRenderer.INSTANCE),
     ;
@@ -85,11 +85,11 @@ public enum BlockType {
         return sizeZ;
     }
 
-    public int render(float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z){
+    public int render(float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z, byte faceMask){
         if(blockRenderer == null)
             return vertexOffset;
 
-        return blockRenderer.render(this, verticies, vertexOffset, chunk, x, y, z);
+        return blockRenderer.render(this, verticies, vertexOffset, chunk, x, y, z, faceMask);
     }
 
     public static BlockType getById(int id){
@@ -107,5 +107,12 @@ public enum BlockType {
             return false;
 
         return blockRenderer.collides(this, toVec.cpy());
+    }
+
+    public byte calculateFaceMasks(Chunk chunk, int x, int y, int z) {
+        if(blockRenderer == null)
+            return 0;
+
+        return blockRenderer.calculateFaceMasks(this, chunk, x, y, z);
     }
 }

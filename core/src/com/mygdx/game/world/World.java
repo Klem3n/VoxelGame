@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.*;
 import com.mygdx.game.Player;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.impl.SelectedBlockRenderer;
+import com.mygdx.game.thread.BackgroundWorker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +31,15 @@ public class World implements RenderableProvider, Disposable {
 
     private boolean isRunning;
 
+    private final BackgroundWorker backgroundWorker;
+
     public World(TextureRegion[][] tiles, Player player) {
         INSTANCE = this;
-
         TEXTURE_TILES = tiles;
-
         this.player = player;
-
         isRunning = true;
+
+        backgroundWorker = new BackgroundWorker(this);
     }
 
     public void set(Vector3 position, BlockType blockType) {
@@ -45,12 +47,12 @@ public class World implements RenderableProvider, Disposable {
     }
 
     public void set (float x, float y, float z, BlockType blockType) {
-        int ix = (int)Math.floor(x);
-        int iy = (int)Math.floor(y);
-        int iz = (int)Math.floor(z);
-        int chunkX = (int) Math.floor(x / CHUNK_SIZE_X);
-        int chunkY = (int) Math.floor(y / CHUNK_SIZE_Y);
-        int chunkZ = (int) Math.floor(z / CHUNK_SIZE_Z);
+        int ix = floor(x);
+        int iy = floor(y);
+        int iz = floor(z);
+        int chunkX = floor(x / CHUNK_SIZE_X);
+        int chunkY = floor(y / CHUNK_SIZE_Y);
+        int chunkZ = floor(z / CHUNK_SIZE_Z);
 
         Chunk chunk;
 
@@ -66,12 +68,12 @@ public class World implements RenderableProvider, Disposable {
     }
 
     public BlockType get (float x, float y, float z) {
-        int ix = (int)Math.floor(x);
-        int iy = (int)Math.floor(y);
-        int iz = (int)Math.floor(z);
-        int chunkX = (int) Math.floor(x / CHUNK_SIZE_X);
-        int chunkY = (int) Math.floor(y / CHUNK_SIZE_Y);
-        int chunkZ = (int) Math.floor(z / CHUNK_SIZE_Z);
+        int ix = floor(x);
+        int iy = floor(y);
+        int iz = floor(z);
+        int chunkX = floor(x / CHUNK_SIZE_X);
+        int chunkY = floor(y / CHUNK_SIZE_Y);
+        int chunkZ = floor(z / CHUNK_SIZE_Z);
 
         Chunk chunk;
 
@@ -118,6 +120,8 @@ public class World implements RenderableProvider, Disposable {
         }
     }
 
+    private RenderState renderState = RenderState.READY;
+    private Chunk chunkToRender = null;
     @Override
     public void getRenderables (Array<Renderable> renderables, Pool<Renderable> pool) {
         RENDERED_CHUNKS = 0;
@@ -155,5 +159,35 @@ public class World implements RenderableProvider, Disposable {
         chunks.forEach((key, entry)->{
             entry.dispose();
         });
+    }
+
+    public boolean isRunning() {
+        return isRunning;
+    }
+
+    public BackgroundWorker getBackgroundWorker() {
+        return backgroundWorker;
+    }
+
+    public RenderState getRenderState() {
+        return renderState;
+    }
+
+    public void setRenderState(RenderState renderState) {
+        this.renderState = renderState;
+    }
+
+    public Chunk getChunkToRender() {
+        return chunkToRender;
+    }
+
+    public void setChunkToRender(Chunk chunkToRender) {
+        this.chunkToRender = chunkToRender;
+    }
+
+    public enum RenderState{
+        READY,
+        RENDERING,
+        DONE
     }
 }

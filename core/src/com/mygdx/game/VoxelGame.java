@@ -18,6 +18,8 @@ import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.mygdx.game.world.World;
 
+import static com.mygdx.game.utils.Constants.*;
+
 public class VoxelGame extends ApplicationAdapter {
 	SpriteBatch spriteBatch;
 	BitmapFont font;
@@ -78,7 +80,7 @@ public class VoxelGame extends ApplicationAdapter {
 
 		spriteBatch.begin();
 		font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() + " Rendered chunks: " + World.RENDERED_CHUNKS +
-				"            Position: " + (int)camera.position.x + ", " + (int)camera.position.y + ", " + (int)camera.position.z, 0, 20);
+				"            Position: " + floor(camera.position.x) + ", " + floor(camera.position.y) + ", " + floor(camera.position.z), 0, 20);
 
 		crosshair.setPosition(Gdx.graphics.getWidth()/2 - crosshair.getWidth()/2, Gdx.graphics.getHeight()/2 - crosshair.getHeight()/2);
 		crosshair.draw(spriteBatch, 1f);
