@@ -35,9 +35,9 @@ public class CollisionRay {
             tDeltaX = Float.MAX_VALUE;
         }
         if (dx > 0) {
-            tMaxX = tDeltaX * frac1(start.x);
+            tMaxX = tDeltaX * frac1(start.x) - 0.5f;
         } else {
-            tMaxX = tDeltaX * frac0(start.x);
+            tMaxX = tDeltaX * frac0(start.x) - 0.5f;
         }
 
         int dy = getSign(end.y - start.y);
@@ -47,9 +47,9 @@ public class CollisionRay {
             tDeltaY = Float.MAX_VALUE;
         }
         if (dy > 0) {
-            tMaxY = tDeltaY * frac1(start.y);
+            tMaxY = tDeltaY * frac1(start.y) - 0.5f;
         } else {
-            tMaxY = tDeltaY * frac0(start.y);
+            tMaxY = tDeltaY * frac0(start.y) - 0.5f;
         }
 
         int dz = getSign(end.z - start.z);
@@ -59,9 +59,9 @@ public class CollisionRay {
             tDeltaZ = Float.MAX_VALUE;
         }
         if (dz > 0) {
-            tMaxZ = tDeltaZ * frac1(start.z);
+            tMaxZ = tDeltaZ * frac1(start.z) - 0.5f;
         } else {
-            tMaxZ = tDeltaZ * frac0(start.z);
+            tMaxZ = tDeltaZ * frac0(start.z) - 0.5f;
         }
 
         Array<BlockType> passed = new Array<>();
