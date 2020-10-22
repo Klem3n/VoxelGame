@@ -91,7 +91,7 @@ public class World implements RenderableProvider, Disposable {
         for (int y = RENDER_DISTANCE * CHUNK_SIZE_Y - 1; y > 0; y--) {
             BlockType blockType = get(ix, y, iz);
             if (blockType != null && blockType != BlockType.AIR) {
-                return y + 2;
+                return y + 3;
             }
         }
         return 0;

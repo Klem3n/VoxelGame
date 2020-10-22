@@ -16,22 +16,25 @@ import com.badlogic.gdx.graphics.g3d.attributes.*;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.mygdx.game.world.World;
 
 import static com.mygdx.game.utils.Constants.*;
 
 public class VoxelGame extends ApplicationAdapter {
-	SpriteBatch spriteBatch;
-	BitmapFont font;
-	ModelBatch modelBatch;
-	PerspectiveCamera camera;
-	Environment lights;
-	Player player;
-	World world;
+	private SpriteBatch spriteBatch;
+	private BitmapFont font;
+	private ModelBatch modelBatch;
+	private PerspectiveCamera camera;
+	private Environment lights;
+	private Player player;
+	private World world;
 
-	Image crosshair;
+	private Image crosshair;
 
 	public static Material MATERIAL;
+
+	public static boolean DEBUG = false;
 
 	@Override
 	public void create () {
@@ -63,7 +66,7 @@ public class VoxelGame extends ApplicationAdapter {
 
 		float camX = 0.5f;
 		float camZ = 0.5f;
-		float camY = world.getHighest(camX, camZ) + 1.5f;
+		float camY = world.getHighest(camX, camZ) + 1.5f + 2f;
 		camera.position.set(camX, camY, camZ);
 
 		Gdx.input.setCursorCatched(true);
@@ -79,15 +82,26 @@ public class VoxelGame extends ApplicationAdapter {
 		player.update();
 
 		spriteBatch.begin();
-		font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() + " Rendered chunks: " + World.RENDERED_CHUNKS +
-				"            Position: " + floor(camera.position.x) + ", " + floor(camera.position.y) + ", " + floor(camera.position.z), 0, 20);
 
-		crosshair.setPosition(Gdx.graphics.getWidth()/2 - crosshair.getWidth()/2, Gdx.graphics.getHeight()/2 - crosshair.getHeight()/2);
+		if(DEBUG) {
+			font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() + " Rendered chunks: " + World.RENDERED_CHUNKS +
+					"            Position: " + floor(camera.position.x) + ", " + floor(camera.position.y) + ", " + floor(camera.position.z), 0, 20);
+
+			font.draw(spriteBatch, "Memory usage: " + Gdx.app.getJavaHeap()/1048576 + " MB", 0, 40);
+		}
+
+		crosshair.setPosition(Gdx.graphics.getWidth()/2f - crosshair.getWidth()/2, Gdx.graphics.getHeight()/2f - crosshair.getHeight()/2);
 		crosshair.draw(spriteBatch, 1f);
 
 		spriteBatch.end();
 	}
-	
+
+	@Override
+	public void resize(int width, int height) {
+		camera.viewportWidth = width;
+		camera.viewportHeight = height;
+	}
+
 	@Override
 	public void dispose () {
 		spriteBatch.dispose();

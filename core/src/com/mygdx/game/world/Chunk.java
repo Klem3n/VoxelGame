@@ -59,7 +59,7 @@ public class Chunk implements Disposable, RenderableProvider {
     }
 
     public void generateMesh(){
-        this.mesh = new Mesh(true, width * height * depth * VERTEX_SIZE * 4, width * height
+        this.mesh = new Mesh(true, width * height * depth * VERTEX_SIZE * 6, width * height
             * depth * 36,
             VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0), VertexAttribute.ColorUnpacked());
 
@@ -92,8 +92,6 @@ public class Chunk implements Disposable, RenderableProvider {
                         }
                     } else {
                         if(heightMap - actualHeight == 0){
-                            setFast(x, y, z, BlockType.GRASS);
-                        } else if(heightMap - actualHeight == 1){
                             setFast(x, y, z, BlockType.GRASS);
                         } else if(heightMap - actualHeight < 6){
                             setFast(x, y, z, BlockType.DIRT);

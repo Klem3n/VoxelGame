@@ -2,6 +2,7 @@ package com.mygdx.game.block;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.VoxelGame;
 import com.mygdx.game.world.Chunk;
 import com.mygdx.game.world.World;
 
@@ -11,17 +12,29 @@ public abstract class BlockRenderer {
     public TextureRegion getTopTexture(BlockType blockType){
         TextureRegion[][] tiles = World.TEXTURE_TILES;
 
+        if(VoxelGame.DEBUG){
+            return tiles[15][10];
+        }
+
         return tiles[blockType.getTopTexture()/tiles.length][blockType.getTopTexture()%tiles[0].length];
     }
 
     public TextureRegion getBottomTexture(BlockType blockType){
         TextureRegion[][] tiles = World.TEXTURE_TILES;
 
+        if(VoxelGame.DEBUG){
+            return tiles[15][10];
+        }
+
         return tiles[blockType.getBottomTexture()/tiles.length][blockType.getBottomTexture()%tiles[0].length];
     }
 
     public TextureRegion getSideTexture(BlockType blockType){
         TextureRegion[][] tiles = World.TEXTURE_TILES;
+
+        if(VoxelGame.DEBUG){
+            return tiles[15][10];
+        }
 
         return tiles[blockType.getBottomTexture()/tiles.length][blockType.getSideTexture()%tiles[0].length];
     }

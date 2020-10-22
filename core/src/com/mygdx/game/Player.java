@@ -96,7 +96,7 @@ public class Player extends InputAdapter {
             }
 
             if (camera.direction.y < -0.900) {
-                camera.direction.y = -0.900f;
+                camera.direction.y = -0.800f;
             }
 
             camera.update();
@@ -108,7 +108,7 @@ public class Player extends InputAdapter {
             }
 
             if (camera.direction.y > 0.900) {
-                camera.direction.y = 0.900f;
+                camera.direction.y = 0.800f;
             }
 
             camera.update();
@@ -176,6 +176,15 @@ public class Player extends InputAdapter {
             keys.remove(ESCAPE, 0);
 
             Gdx.input.setCursorCatched(!Gdx.input.isCursorCatched());
+        }
+        if(keys.containsKey(Keys.F5)){
+            keys.remove(Keys.F5, 0);
+
+            VoxelGame.DEBUG = !VoxelGame.DEBUG;
+            
+            World.INSTANCE.chunks.forEach((key, c)->{
+                c.setDirty(true);
+            });
         }
 
         transform.y = 0;
