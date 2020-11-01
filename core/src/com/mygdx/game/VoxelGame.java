@@ -3,9 +3,9 @@ package com.mygdx.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
@@ -16,8 +16,12 @@ import com.badlogic.gdx.graphics.g3d.attributes.*;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.mygdx.game.utils.ThreadUtil;
 import com.mygdx.game.world.World;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.mygdx.game.utils.Constants.*;
 
@@ -29,12 +33,18 @@ public class VoxelGame extends ApplicationAdapter {
 	private Environment lights;
 	private Player player;
 	private World world;
+	private ExtendViewport viewport;
 
 	private Image crosshair;
 
 	public static Material MATERIAL;
 
 	public static boolean DEBUG = false;
+
+	/**
+	 * The ExecutorService.
+	 */
+	public static final ExecutorService CHUNK_EXECUTOR = Executors.newFixedThreadPool(1, ThreadUtil.create("ClientSynchronizer"));
 
 	@Override
 	public void create () {
@@ -46,6 +56,9 @@ public class VoxelGame extends ApplicationAdapter {
 		camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.near = 0.0001f;
 		camera.far = 1000;
+		viewport = new ExtendViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
+		viewport.apply();
+
 		player = new Player(camera);
 		Gdx.input.setInputProcessor(player);
 
@@ -76,6 +89,7 @@ public class VoxelGame extends ApplicationAdapter {
 	public void render () {
 		Gdx.gl.glClearColor(0.4f, 0.4f, 0.4f, 1f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
+
 		modelBatch.begin(camera);
 		modelBatch.render(world, lights);
 		modelBatch.end();
@@ -100,6 +114,7 @@ public class VoxelGame extends ApplicationAdapter {
 	public void resize(int width, int height) {
 		camera.viewportWidth = width;
 		camera.viewportHeight = height;
+		viewport.update(width, height);
 	}
 
 	@Override

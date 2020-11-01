@@ -218,14 +218,6 @@ public class Chunk implements Disposable, RenderableProvider {
         return vertexOffset;
     }
 
-    public Mesh getMesh() {
-        return mesh;
-    }
-
-    public void setMesh(Mesh mesh) {
-        this.mesh = mesh;
-    }
-
     public boolean isDirty() {
         return dirty;
     }
@@ -268,8 +260,9 @@ public class Chunk implements Disposable, RenderableProvider {
         }
 
         if (dirty) {
-            update();
-            render();
+            generated = false;
+            VoxelGame.CHUNK_EXECUTOR.submit(this::render);
+            dirty = false;
         }
 
         if (vertAmount <= 0) return;
@@ -284,10 +277,11 @@ public class Chunk implements Disposable, RenderableProvider {
         World.RENDERED_CHUNKS++;
     }
 
-    public void render() {
+    private void render() {
+        update();
         int numVerts = calculateVertices(VERTICES);
         mesh.setVertices(VERTICES, 0, numVerts);
         this.vertAmount = numVerts / 4;
-        dirty = false;
+        this.generated = true;
     }
 }

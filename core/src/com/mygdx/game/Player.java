@@ -181,7 +181,7 @@ public class Player extends InputAdapter {
             keys.remove(Keys.F5, 0);
 
             VoxelGame.DEBUG = !VoxelGame.DEBUG;
-            
+
             World.INSTANCE.chunks.forEach((key, c)->{
                 c.setDirty(true);
             });

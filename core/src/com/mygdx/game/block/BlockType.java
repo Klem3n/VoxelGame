@@ -15,7 +15,7 @@ public enum BlockType {
     COBBLESTONE(4, 1, 1, 1, true, DefaultBlockRenderer.INSTANCE),
     OAK_WOOD(5, 22, 21, 22, true, DefaultBlockRenderer.INSTANCE),
     OAK_LEAVES(6, 53, 53, 53, true, DefaultBlockRenderer.INSTANCE),
-    WATER(7, 205, 206, 206, false, 0.6f, 1f, 0.9f, 1f, DefaultBlockRenderer.INSTANCE),
+    WATER(7, 205, 206, 206, false, 0.6f, 1f, 1f, 1f, DefaultBlockRenderer.INSTANCE),
     ROSE(8, 12, 12, 12, false, 0.5f, FolliageBlockRenderer.INSTANCE),
     DANDELION(9, 13, 13, 13, false, 0.5f, FolliageBlockRenderer.INSTANCE),
     ;
@@ -71,6 +71,10 @@ public enum BlockType {
 
     public float getAlpha() {
         return alpha;
+    }
+
+    public boolean isTransparent(){
+        return alpha < 1f;
     }
 
     public float getSizeX() {
