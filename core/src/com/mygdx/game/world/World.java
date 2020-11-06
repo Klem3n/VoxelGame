@@ -8,7 +8,6 @@ import com.badlogic.gdx.utils.*;
 import com.mygdx.game.Player;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.impl.SelectedBlockRenderer;
-import com.mygdx.game.thread.BackgroundWorker;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,15 +30,11 @@ public class World implements RenderableProvider, Disposable {
 
     private boolean isRunning;
 
-    private final BackgroundWorker backgroundWorker;
-
     public World(TextureRegion[][] tiles, Player player) {
         INSTANCE = this;
         TEXTURE_TILES = tiles;
         this.player = player;
         isRunning = true;
-
-        backgroundWorker = new BackgroundWorker(this);
     }
 
     public void set(Vector3 position, BlockType blockType) {
@@ -120,8 +115,6 @@ public class World implements RenderableProvider, Disposable {
         }
     }
 
-    private RenderState renderState = RenderState.READY;
-    private Chunk chunkToRender = null;
     @Override
     public void getRenderables (Array<Renderable> renderables, Pool<Renderable> pool) {
         RENDERED_CHUNKS = 0;
@@ -142,52 +135,31 @@ public class World implements RenderableProvider, Disposable {
             /**
              * render chunk
              */
-            chunk.getRenderables(renderables, pool);
+            chunk.render(renderables, pool, false);
+        }
+
+        toRemove.forEach(chunks::remove);
+
+        for (Map.Entry<Vector3, Chunk> entry : chunks.entrySet()) {
+            Chunk chunk = entry.getValue();
+            chunk.render(renderables, pool, true);
         }
 
         /**
          * Renders a box around the block we're aiming at
          */
         SelectedBlockRenderer.render(player.getSelectedBlock(), renderables, pool);
-
-        toRemove.forEach(chunks::remove);
     }
 
     @Override
     public void dispose() {
         isRunning = false;
-        chunks.forEach((key, entry)->{
-            entry.dispose();
-        });
+        chunks.values().forEach(Chunk::dispose);
+
+        Chunk.MESH_POOL.dispose();
     }
 
     public boolean isRunning() {
         return isRunning;
-    }
-
-    public BackgroundWorker getBackgroundWorker() {
-        return backgroundWorker;
-    }
-
-    public RenderState getRenderState() {
-        return renderState;
-    }
-
-    public void setRenderState(RenderState renderState) {
-        this.renderState = renderState;
-    }
-
-    public Chunk getChunkToRender() {
-        return chunkToRender;
-    }
-
-    public void setChunkToRender(Chunk chunkToRender) {
-        this.chunkToRender = chunkToRender;
-    }
-
-    public enum RenderState{
-        READY,
-        RENDERING,
-        DONE
     }
 }

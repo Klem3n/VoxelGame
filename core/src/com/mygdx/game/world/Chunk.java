@@ -4,7 +4,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
+import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Vector3;
@@ -13,13 +15,16 @@ import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Pool;
 import com.mygdx.game.VoxelGame;
 import com.mygdx.game.block.BlockType;
+import com.mygdx.game.utils.ChunkMeshPool;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static com.mygdx.game.utils.Constants.*;
 
-public class Chunk implements Disposable, RenderableProvider {
+public class Chunk implements Disposable {
+    public static final ChunkMeshPool MESH_POOL = new ChunkMeshPool();
+
     private final byte[] voxels;
     private final byte[] faceMasks;
     private final int width;
@@ -30,6 +35,7 @@ public class Chunk implements Disposable, RenderableProvider {
     private final int widthTimesHeight;
 
     private Mesh mesh;
+    private Mesh meshTransparent;
     private boolean dirty;
 
     private boolean generated;
@@ -38,8 +44,11 @@ public class Chunk implements Disposable, RenderableProvider {
      * Amount of vertices generated for this chunk
      */
     private int vertAmount = 0;
+    private int vertAmountTransparent = 0;
 
     public static float[] VERTICES = new float[VERTEX_SIZE*6*CHUNK_SIZE_X*CHUNK_SIZE_Y*CHUNK_SIZE_Z];
+
+    private final int maxVertices, maxIndices;
 
     public Chunk(Vector3 chunkPosition, float x, float y, float z) {
         this.width = CHUNK_SIZE_X;
@@ -51,17 +60,24 @@ public class Chunk implements Disposable, RenderableProvider {
 
         this.widthTimesHeight = width * height;
 
+        this.maxVertices = width * height * depth * VERTEX_SIZE * 6;
+        this.maxIndices = width * height
+                * depth * 36;
+
         this.offset.set(x, y, z);
         this.chunkPosition.set(chunkPosition);
-
-        generateMesh();
         generateHeightMap();
     }
 
+
     public void generateMesh(){
-        this.mesh = new Mesh(true, width * height * depth * VERTEX_SIZE * 6, width * height
-            * depth * 36,
-            VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0), VertexAttribute.ColorUnpacked());
+        generated = true;
+
+        this.mesh = MESH_POOL.obtain(new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0), VertexAttribute.ColorUnpacked()),
+                maxVertices, maxIndices);
+
+        this.meshTransparent = MESH_POOL.obtain(new VertexAttributes(VertexAttribute.Position(), VertexAttribute.Normal(), VertexAttribute.TexCoords(0), VertexAttribute.ColorUnpacked()),
+                maxVertices, maxIndices);
 
         int len = width * height * depth * 6 * 6;
         short[] indices = new short[len];
@@ -76,6 +92,7 @@ public class Chunk implements Disposable, RenderableProvider {
         }
 
         this.mesh.setIndices(indices);
+        this.meshTransparent.setIndices(indices);
     }
 
     public void generateHeightMap(){
@@ -103,7 +120,6 @@ public class Chunk implements Disposable, RenderableProvider {
             }
         }
 
-        this.generated = true;
         this.dirty = true;
     }
 
@@ -197,7 +213,7 @@ public class Chunk implements Disposable, RenderableProvider {
 
     /** Creates a mesh out of the chunk, returning the number of indices produced
      * @return the number of vertices produced */
-    public int calculateVertices(float[] vertices) {
+    public int calculateVertices(float[] vertices, boolean transparent) {
         int i = 0;
         int vertexOffset = 0;
         for (int y = 0; y < height; y++) {
@@ -208,7 +224,7 @@ public class Chunk implements Disposable, RenderableProvider {
 
                     BlockType blockType = BlockType.getById(voxel);
 
-                    if (blockType == null || blockType.equals(BlockType.AIR)) continue;
+                    if (blockType == null || blockType.equals(BlockType.AIR) || blockType.isTransparent() != transparent) continue;
 
                     vertexOffset = blockType.render(vertices, vertexOffset, this, x, y, z, faceMask);
                 }
@@ -237,7 +253,11 @@ public class Chunk implements Disposable, RenderableProvider {
     @Override
     public void dispose() {
         if(mesh != null) {
-            mesh.dispose();
+            MESH_POOL.flush(mesh);
+        }
+
+        if(meshTransparent != null) {
+            MESH_POOL.flush(meshTransparent);
         }
     }
 
@@ -253,35 +273,53 @@ public class Chunk implements Disposable, RenderableProvider {
         return World.INSTANCE.get(offset.cpy().add(x, y, z));
     }
 
-    @Override
-    public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
-        if(mesh == null){
-            return;
+    public void render(Array<Renderable> renderables, Pool<Renderable> pool, boolean transparent) {
+        if(!generated){
+            generateMesh();
         }
 
         if (dirty) {
-            generated = false;
-            VoxelGame.CHUNK_EXECUTOR.submit(this::render);
+            VoxelGame.CHUNK_EXECUTOR.submit(this::generate);
             dirty = false;
         }
 
-        if (vertAmount <= 0) return;
+        Renderable renderable;
 
-        Renderable renderable = pool.obtain();
+        if(!transparent) {
+            if (vertAmount <= 0) return;
+
+            renderable = pool.obtain();
+            renderable.material = VoxelGame.MATERIAL;
+            renderable.meshPart.mesh = mesh;
+            renderable.meshPart.offset = 0;
+            renderable.meshPart.size = vertAmount;
+            renderable.meshPart.primitiveType = GL20.GL_TRIANGLES;
+            renderables.add(renderable);
+            World.RENDERED_CHUNKS++;
+            return;
+        }
+
+        if(vertAmountTransparent <= 0){
+            return;
+        }
+
+        renderable = pool.obtain();
         renderable.material = VoxelGame.MATERIAL;
-        renderable.meshPart.mesh = mesh;
+        renderable.meshPart.mesh = meshTransparent;
         renderable.meshPart.offset = 0;
-        renderable.meshPart.size = vertAmount;
+        renderable.meshPart.size = vertAmountTransparent;
         renderable.meshPart.primitiveType = GL20.GL_TRIANGLES;
         renderables.add(renderable);
-        World.RENDERED_CHUNKS++;
     }
 
-    private void render() {
+    private void generate() {
         update();
-        int numVerts = calculateVertices(VERTICES);
+        int numVerts = calculateVertices(VERTICES, false);
         mesh.setVertices(VERTICES, 0, numVerts);
         this.vertAmount = numVerts / 4;
-        this.generated = true;
+
+        numVerts = calculateVertices(VERTICES, true);
+        meshTransparent.setVertices(VERTICES, 0, numVerts);
+        this.vertAmountTransparent = numVerts / 4;
     }
 }

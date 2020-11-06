@@ -5,7 +5,7 @@ import com.badlogic.gdx.math.Vector3;
 public class Constants {
     public static final FastNoiseLite fastNoiseLite = new FastNoiseLite(0);
 
-    public static final int RENDER_DISTANCE = 8;
+    public static final int RENDER_DISTANCE = 6;
 
     public static final int CHUNK_SIZE_X = 16;
     public static final int CHUNK_SIZE_Y = 16;
