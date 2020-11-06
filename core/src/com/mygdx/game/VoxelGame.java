@@ -3,7 +3,6 @@ package com.mygdx.game;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -30,7 +29,7 @@ public class VoxelGame extends ApplicationAdapter {
 	private BitmapFont font;
 	private ModelBatch modelBatch;
 	private PerspectiveCamera camera;
-	private Environment lights;
+	private Environment environment;
 	private Player player;
 	private World world;
 	private ExtendViewport viewport;
@@ -55,16 +54,17 @@ public class VoxelGame extends ApplicationAdapter {
 		DefaultShader.defaultCullFace = GL20.GL_FRONT;
 		camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		camera.near = 0.0001f;
-		camera.far = 1000;
+		camera.far = 100f;
 		viewport = new ExtendViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
 		viewport.apply();
 
 		player = new Player(camera);
 		Gdx.input.setInputProcessor(player);
 
-		lights = new Environment();
-		lights.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1.f));
-		lights.add(new DirectionalLight().set(1, 1, 1, 0, -1, 0));
+		environment = new Environment();
+		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1.f));
+		environment.set(new ColorAttribute(ColorAttribute.Fog, 0.4f, 0.4f, 0.4f, 1f));
+		environment.add(new DirectionalLight().set(1, 1, 1, 0, -1, 0));
 
 		Texture texture = new Texture("tiles.png");
 
@@ -91,7 +91,7 @@ public class VoxelGame extends ApplicationAdapter {
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		modelBatch.begin(camera);
-		modelBatch.render(world, lights);
+		modelBatch.render(world, environment);
 		modelBatch.end();
 		player.update();
 

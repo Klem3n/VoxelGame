@@ -94,7 +94,7 @@ public class World implements RenderableProvider, Disposable {
 
     private void updateChunks(){
         if(!getChunkPosition(player.getPosition()).equals(lastUpdatePosition)){
-            for (int y = -RENDER_DISTANCE; y < RENDER_DISTANCE; y++) {
+            for (int y = -2; y < 2; y++) {
                 for (int z = -RENDER_DISTANCE; z < RENDER_DISTANCE; z++) {
                     for (int x = -RENDER_DISTANCE; x < RENDER_DISTANCE; x++) {
                         Vector3 position = getChunkPosition(player.getPosition()).add(x, y, z);
