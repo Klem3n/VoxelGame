@@ -2,6 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -14,6 +15,7 @@ import com.badlogic.gdx.graphics.g3d.ModelBatch;
 import com.badlogic.gdx.graphics.g3d.attributes.*;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.mygdx.game.utils.ThreadUtil;
@@ -58,7 +60,7 @@ public class VoxelGame extends ApplicationAdapter {
 		viewport = new ExtendViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
 		viewport.apply();
 
-		player = new Player(camera);
+		player = new Player(camera, new Vector3(0, 1,0));
 		Gdx.input.setInputProcessor(player);
 
 		environment = new Environment();
@@ -76,11 +78,6 @@ public class VoxelGame extends ApplicationAdapter {
 		TextureRegion[][] tiles = TextureRegion.split(texture, 32, 32);
 
 		world = new World(tiles, player);
-
-		float camX = 0.5f;
-		float camZ = 0.5f;
-		float camY = world.getHighest(camX, camZ) + 1.5f + 2f;
-		camera.position.set(camX, camY, camZ);
 
 		Gdx.input.setCursorCatched(true);
 	}

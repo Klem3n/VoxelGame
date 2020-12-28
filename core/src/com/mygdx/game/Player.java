@@ -41,10 +41,14 @@ public class Player extends InputAdapter {
 
     private final PlayerBounds bounds;
 
-    public Player (Camera camera) {
+    private final Vector3 position;
+
+    public Player (Camera camera, Vector3 position) {
         this.camera = camera;
-        bounds = new PlayerBounds(this, camera.position);
+        bounds = new PlayerBounds(this, position);
         blockDetectionRay = new CollisionRay(this.camera.position, this.camera.direction, 3);
+        this.position = position;
+        this.camera.position.set(this.position).add(0f, 1.5f, 0f);
     }
 
     @Override
@@ -212,6 +216,7 @@ public class Player extends InputAdapter {
         onGround = velocity.y == 0;
 
         camera.position.add(velocity);
+        position.add(velocity);
 
         camera.update(true);
     }
@@ -227,7 +232,7 @@ public class Player extends InputAdapter {
     }
 
     public Vector3 getPosition(){
-        return camera.position;
+        return position;
     }
 
     public boolean isOnGround() {

@@ -24,7 +24,7 @@ public enum BlockType {
 
     private final int id, topTexture, sideTexture, bottomTexture;
 
-    private final float alpha, sizeX, sizeY, sizeZ;
+    private final float alpha, sizeX, sizeY, sizeZ, offsetX, offsetY, offsetZ;
 
     private BlockRenderer blockRenderer;
 
@@ -47,6 +47,9 @@ public enum BlockType {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
+        this.offsetX = 0;
+        this.offsetY = 0;
+        this.offsetZ = 0;
     }
 
     public int getId() {
@@ -87,6 +90,18 @@ public enum BlockType {
 
     public float getSizeZ() {
         return sizeZ;
+    }
+
+    public float getOffsetX() {
+        return offsetX;
+    }
+
+    public float getOffsetY() {
+        return offsetY;
+    }
+
+    public float getOffsetZ() {
+        return offsetZ;
     }
 
     public int render(float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z, byte faceMask){
