@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.*;
 import com.mygdx.game.Player;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.impl.SelectedBlockRenderer;
+import com.mygdx.game.controller.PlayerController;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,16 +25,16 @@ public class World implements RenderableProvider, Disposable {
     public static int RENDERED_CHUNKS;
     public static TextureRegion[][] TEXTURE_TILES;
 
-    private final Player player;
+    private final PlayerController playerController;
 
     private Vector3 lastUpdatePosition = null;
 
     private boolean isRunning;
 
-    public World(TextureRegion[][] tiles, Player player) {
+    public World(TextureRegion[][] tiles, PlayerController playerController) {
         INSTANCE = this;
         TEXTURE_TILES = tiles;
-        this.player = player;
+        this.playerController = playerController;
         isRunning = true;
     }
 
@@ -93,14 +94,14 @@ public class World implements RenderableProvider, Disposable {
     }
 
     private void updateChunks(){
-        if(!getChunkPosition(player.getPosition()).equals(lastUpdatePosition)){
+        if(!getChunkPosition(playerController.getPosition()).equals(lastUpdatePosition)){
             for (int y = -2; y < 2; y++) {
                 for (int z = -RENDER_DISTANCE; z < RENDER_DISTANCE; z++) {
                     for (int x = -RENDER_DISTANCE; x < RENDER_DISTANCE; x++) {
-                        Vector3 position = getChunkPosition(player.getPosition()).add(x, y, z);
+                        Vector3 position = getChunkPosition(playerController.getPosition()).add(x, y, z);
                         Vector3 offset = new Vector3(position.x * CHUNK_SIZE_X, position.y * CHUNK_SIZE_Y, position.z * CHUNK_SIZE_Z);
 
-                        if(chunks.containsKey(position) || Math.abs(getChunkPosition(player.getPosition()).dst(getChunkPosition(offset))) > RENDER_DISTANCE){
+                        if(chunks.containsKey(position) || Math.abs(getChunkPosition(playerController.getPosition()).dst(getChunkPosition(offset))) > RENDER_DISTANCE){
                             continue;
                         }
 
@@ -111,7 +112,7 @@ public class World implements RenderableProvider, Disposable {
                 }
             }
 
-            lastUpdatePosition = getChunkPosition(player.getPosition());
+            lastUpdatePosition = getChunkPosition(playerController.getPosition());
         }
     }
 
@@ -126,7 +127,7 @@ public class World implements RenderableProvider, Disposable {
         for (Map.Entry<Vector3, Chunk> entry : chunks.entrySet()) {
             Chunk chunk = entry.getValue();
 
-            if(!chunk.isVisible(getChunkPosition(player.getPosition()))){
+            if(!chunk.isVisible(getChunkPosition(playerController.getPosition()))){
                 chunk.dispose();
                 toRemove.add(entry.getKey());
                 continue;
@@ -148,7 +149,7 @@ public class World implements RenderableProvider, Disposable {
         /**
          * Renders a box around the block we're aiming at
          */
-        SelectedBlockRenderer.render(player.getSelectedBlock(), renderables, pool);
+        SelectedBlockRenderer.render(playerController.getPlayer().getSelectedBlock(), renderables, pool);
     }
 
     @Override

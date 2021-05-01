@@ -1,14 +1,10 @@
 package com.mygdx.game.world;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.VertexAttributes;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g3d.ModelCache;
 import com.badlogic.gdx.graphics.g3d.Renderable;
-import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
@@ -16,9 +12,6 @@ import com.badlogic.gdx.utils.Pool;
 import com.mygdx.game.VoxelGame;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.utils.ChunkMeshPool;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static com.mygdx.game.utils.Constants.*;
 
@@ -121,12 +114,20 @@ public class Chunk implements Disposable {
         }
 
         this.dirty = true;
+
+        updateNeighborChunks();
     }
 
     public BlockType get (int x, int y, int z) {
-        if (x < 0 || x >= width) return BlockType.AIR;
-        if (y < 0 || y >= height) return BlockType.AIR;
-        if (z < 0 || z >= depth) return BlockType.AIR;
+        if (x < 0 || x >= width) {
+            return BlockType.AIR;
+        }
+        if (y < 0 || y >= height) {
+            return BlockType.AIR;
+        }
+        if (z < 0 || z >= depth) {
+            return BlockType.AIR;
+        }
         return getFast(x, y, z);
     }
 
@@ -135,18 +136,24 @@ public class Chunk implements Disposable {
     }
 
     public void set (int x, int y, int z, BlockType blockType) {
-        if (x < 0 || x >= width) return;
-        if (y < 0 || y >= height) return;
-        if (z < 0 || z >= depth) return;
+        if (x < 0 || x >= width) {
+            return;
+        }
+        if (y < 0 || y >= height) {
+            return;
+        }
+        if (z < 0 || z >= depth) {
+            return;
+        }
         setFast(x, y, z, blockType);
 
         float xDiff = 0;
         float yDiff = 0;
         float zDiff = 0;
 
-        if(x == 0){
+        if (x == 0) {
             xDiff--;
-        } else if(x == width-1){
+        } else if (x == width - 1) {
             xDiff++;
         }
 
@@ -185,15 +192,37 @@ public class Chunk implements Disposable {
         });
     }
 
-    public void setFast (int x, int y, int z, BlockType blockType) {
+    public void setFast(int x, int y, int z, BlockType blockType) {
         voxels[x + z * width + y * widthTimesHeight] = (byte) blockType.getId();
         dirty = true;
     }
 
     /**
+     * Marks all neighbor chunks as dirty
+     */
+    public void updateNeighborChunks() {
+        Array<Vector3> neighbors = new Array<>();
+
+        neighbors.add(new Vector3(0, 1, 0));
+        neighbors.add(new Vector3(0, -1, 0));
+        neighbors.add(new Vector3(1, 0, 0));
+        neighbors.add(new Vector3(-1, 0, 0));
+        neighbors.add(new Vector3(0, 0, 1));
+        neighbors.add(new Vector3(0, 0, -1));
+
+        neighbors.forEach(pos -> {
+            Chunk neighbor = World.INSTANCE.chunks.get(pos.add(chunkPosition));
+
+            if (neighbor != null) {
+                neighbor.dirty = true;
+            }
+        });
+    }
+
+    /**
      * Updates face masks in the chunk
      */
-    public void update(){
+    public void update() {
         int i = 0;
         for (int y = 0; y < height; y++) {
             for (int z = 0; z < depth; z++) {
@@ -202,8 +231,9 @@ public class Chunk implements Disposable {
 
                     BlockType blockType = BlockType.getById(voxel);
 
-                    if(blockType == null || blockType.equals(BlockType.AIR))
+                    if (blockType == null || blockType.equals(BlockType.AIR)) {
                         continue;
+                    }
 
                     faceMasks[i] = blockType.calculateFaceMasks(this, x, y, z);
                 }
@@ -224,7 +254,9 @@ public class Chunk implements Disposable {
 
                     BlockType blockType = BlockType.getById(voxel);
 
-                    if (blockType == null || blockType.equals(BlockType.AIR) || blockType.isTransparent() != transparent) continue;
+                    if (blockType == null || blockType.equals(BlockType.AIR) || blockType.isTransparent() != transparent) {
+                        continue;
+                    }
 
                     vertexOffset = blockType.render(vertices, vertexOffset, this, x, y, z, faceMask);
                 }
@@ -286,7 +318,9 @@ public class Chunk implements Disposable {
         Renderable renderable;
 
         if(!transparent) {
-            if (vertAmount <= 0) return;
+            if (vertAmount <= 0) {
+                return;
+            }
 
             renderable = pool.obtain();
             renderable.material = VoxelGame.MATERIAL;

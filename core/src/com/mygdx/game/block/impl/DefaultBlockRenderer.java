@@ -39,6 +39,10 @@ public class DefaultBlockRenderer extends BlockRenderer {
 
     @Override
     public boolean collides(BlockType blockType, Vector3 position) {
+        if(blockType == BlockType.AIR || blockType == BlockType.WATER){
+            return false;
+        }
+
         return true;
     }
 

@@ -25,6 +25,10 @@ public class Constants {
         return new Vector3((int)Math.floor(vector.x), (int)Math.floor(vector.y), (int)Math.floor(vector.z));
     }
 
+    public static int ceil(float i){
+        return (int) Math.ceil(i);
+    }
+
     static {
         fastNoiseLite.SetNoiseType(FastNoiseLite.NoiseType.Perlin);
     }

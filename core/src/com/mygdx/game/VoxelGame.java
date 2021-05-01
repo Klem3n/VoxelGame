@@ -2,7 +2,6 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.PerspectiveCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -17,14 +16,17 @@ import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.mygdx.game.controller.PlayerController;
 import com.mygdx.game.utils.ThreadUtil;
 import com.mygdx.game.world.World;
+import com.mygdx.game.world.entity.Entity;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import static com.mygdx.game.utils.Constants.*;
+import static com.mygdx.game.utils.Constants.floor;
 
 public class VoxelGame extends ApplicationAdapter {
 	private SpriteBatch spriteBatch;
@@ -32,7 +34,7 @@ public class VoxelGame extends ApplicationAdapter {
 	private ModelBatch modelBatch;
 	private PerspectiveCamera camera;
 	private Environment environment;
-	private Player player;
+	private PlayerController playerController;
 	private World world;
 	private ExtendViewport viewport;
 
@@ -42,13 +44,15 @@ public class VoxelGame extends ApplicationAdapter {
 
 	public static boolean DEBUG = false;
 
+	private Array<Entity> entities = new Array<>();
+
 	/**
 	 * The ExecutorService.
 	 */
 	public static final ExecutorService CHUNK_EXECUTOR = Executors.newFixedThreadPool(1, ThreadUtil.create("ClientSynchronizer"));
 
 	@Override
-	public void create () {
+	public void create() {
 		crosshair = new Image(new Texture("crosshair.png"));
 		spriteBatch = new SpriteBatch();
 		font = new BitmapFont();
@@ -60,8 +64,10 @@ public class VoxelGame extends ApplicationAdapter {
 		viewport = new ExtendViewport(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), camera);
 		viewport.apply();
 
-		player = new Player(camera, new Vector3(0, 1,0));
-		Gdx.input.setInputProcessor(player);
+		playerController = new PlayerController(camera, new Vector3(0.2f, 1.0f, 0.2f));
+		Gdx.input.setInputProcessor(playerController);
+
+		entities.add(playerController.getPlayer());
 
 		environment = new Environment();
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.4f, 0.4f, 0.4f, 1.f));
@@ -77,28 +83,32 @@ public class VoxelGame extends ApplicationAdapter {
 
 		TextureRegion[][] tiles = TextureRegion.split(texture, 32, 32);
 
-		world = new World(tiles, player);
+		world = new World(tiles, playerController);
 
 		Gdx.input.setCursorCatched(true);
 	}
 
 	@Override
-	public void render () {
+	public void render() {
 		Gdx.gl.glClearColor(0.4f, 0.4f, 0.4f, 1f);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		modelBatch.begin(camera);
 		modelBatch.render(world, environment);
 		modelBatch.end();
-		player.update();
+		playerController.update();
+
+		//Update all entities after player controller
+
+		entities.forEach(Entity::update);
 
 		spriteBatch.begin();
 
-		if(DEBUG) {
+		if (DEBUG) {
 			font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() + " Rendered chunks: " + World.RENDERED_CHUNKS +
 					"            Position: " + floor(camera.position.x) + ", " + floor(camera.position.y) + ", " + floor(camera.position.z), 0, 20);
 
-			font.draw(spriteBatch, "Memory usage: " + Gdx.app.getJavaHeap()/1048576 + " MB", 0, 40);
+			font.draw(spriteBatch, "Memory usage: " + Gdx.app.getJavaHeap() / 1048576 + " MB", 0, 40);
 		}
 
 		crosshair.setPosition(Gdx.graphics.getWidth()/2f - crosshair.getWidth()/2, Gdx.graphics.getHeight()/2f - crosshair.getHeight()/2);
