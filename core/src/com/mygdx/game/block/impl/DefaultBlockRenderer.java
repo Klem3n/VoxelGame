@@ -5,9 +5,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.block.BlockRenderer;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.world.Chunk;
-import com.mygdx.game.world.World;
-
-import static com.mygdx.game.utils.Constants.*;
 
 public class DefaultBlockRenderer extends BlockRenderer {
     public static final DefaultBlockRenderer INSTANCE = new DefaultBlockRenderer();
@@ -35,15 +32,6 @@ public class DefaultBlockRenderer extends BlockRenderer {
 
 
         return vertexOffset;
-    }
-
-    @Override
-    public boolean collides(BlockType blockType, Vector3 position) {
-        if(blockType == BlockType.AIR || blockType == BlockType.WATER){
-            return false;
-        }
-
-        return true;
     }
 
     @Override
@@ -75,8 +63,9 @@ public class DefaultBlockRenderer extends BlockRenderer {
     private boolean renderTop(BlockType render, Chunk chunk, int x, int y, int z) {
         BlockType blockType = chunk.getBlock(x, y + 1, z);
 
-        if (blockType == null)
+        if (blockType == null) {
             return false;
+        }
 
         if (render == blockType) {
             return false;
@@ -88,8 +77,9 @@ public class DefaultBlockRenderer extends BlockRenderer {
     private boolean renderBottom(BlockType render, Chunk chunk, int x, int y, int z) {
         BlockType blockType = chunk.getBlock(x, y - 1, z);
 
-        if (blockType == null)
+        if (blockType == null) {
             return false;
+        }
 
         if (render == blockType) {
             return false;
@@ -101,8 +91,9 @@ public class DefaultBlockRenderer extends BlockRenderer {
     private boolean renderLeft(BlockType render, Chunk chunk, int x, int y, int z) {
         BlockType blockType = chunk.getBlock(x - 1, y, z);
 
-        if (blockType == null)
+        if (blockType == null) {
             return false;
+        }
 
         if (render == blockType) {
             return false;
@@ -114,8 +105,9 @@ public class DefaultBlockRenderer extends BlockRenderer {
     private boolean renderRight(BlockType render, Chunk chunk, int x, int y, int z) {
         BlockType blockType = chunk.getBlock(x + 1, y, z);
 
-        if (blockType == null)
+        if (blockType == null) {
             return false;
+        }
 
         if (render == blockType) {
             return false;
@@ -127,8 +119,9 @@ public class DefaultBlockRenderer extends BlockRenderer {
     private boolean renderFront(BlockType render, Chunk chunk, int x, int y, int z) {
         BlockType blockType = chunk.getBlock(x, y, z - 1);
 
-        if (blockType == null)
+        if (blockType == null) {
             return false;
+        }
 
         if (render == blockType) {
             return false;
@@ -140,8 +133,9 @@ public class DefaultBlockRenderer extends BlockRenderer {
     private boolean renderBack(BlockType render, Chunk chunk, int x, int y, int z) {
         BlockType blockType = chunk.getBlock(x, y, z + 1);
 
-        if (blockType == null)
+        if (blockType == null) {
             return false;
+        }
 
         if (render == blockType) {
             return false;

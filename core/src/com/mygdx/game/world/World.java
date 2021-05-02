@@ -4,8 +4,9 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.*;
-import com.mygdx.game.Player;
+import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Disposable;
+import com.badlogic.gdx.utils.Pool;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.impl.SelectedBlockRenderer;
 import com.mygdx.game.controller.PlayerController;
@@ -127,7 +128,7 @@ public class World implements RenderableProvider, Disposable {
         for (Map.Entry<Vector3, Chunk> entry : chunks.entrySet()) {
             Chunk chunk = entry.getValue();
 
-            if(!chunk.isVisible(getChunkPosition(playerController.getPosition()))){
+            if (!chunk.isVisible(getChunkPosition(playerController.getPosition()))) {
                 chunk.dispose();
                 toRemove.add(entry.getKey());
                 continue;
@@ -139,17 +140,18 @@ public class World implements RenderableProvider, Disposable {
             chunk.render(renderables, pool, false);
         }
 
+
+        /**
+         * Renders a box around the block we're aiming at
+         */
+        SelectedBlockRenderer.render(playerController.getPlayer().getSelectedBlock(), renderables, pool);
+
         toRemove.forEach(chunks::remove);
 
         for (Map.Entry<Vector3, Chunk> entry : chunks.entrySet()) {
             Chunk chunk = entry.getValue();
             chunk.render(renderables, pool, true);
         }
-
-        /**
-         * Renders a box around the block we're aiming at
-         */
-        SelectedBlockRenderer.render(playerController.getPlayer().getSelectedBlock(), renderables, pool);
     }
 
     @Override

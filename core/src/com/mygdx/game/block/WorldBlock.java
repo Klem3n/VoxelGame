@@ -1,14 +1,17 @@
 package com.mygdx.game.block;
 
 import com.badlogic.gdx.math.Vector3;
+import com.mygdx.game.collision.ray.RayHit;
 
 public class WorldBlock {
-    Vector3 position;
-    BlockType blockType;
+    private Vector3 position;
+    private BlockType blockType;
+    private RayHit rayHit;
 
-    public WorldBlock(Vector3 position, BlockType blockType) {
+    public WorldBlock(Vector3 position, BlockType blockType, RayHit rayHit) {
         this.position = position;
         this.blockType = blockType;
+        this.rayHit = rayHit;
     }
 
     public Vector3 getPosition() {
@@ -27,11 +30,20 @@ public class WorldBlock {
         this.blockType = blockType;
     }
 
+    public RayHit getRayHit() {
+        return rayHit;
+    }
+
+    public void setRayHit(RayHit rayHit) {
+        this.rayHit = rayHit;
+    }
+
     @Override
     public String toString() {
         return "WorldBlock{" +
-                "position= (" + (int)position.x + ", " + (int)position.y + ", " +(int)position.z +
-                "), block=" + blockType +
+                "position=" + position +
+                ", blockType=" + blockType +
+                ", rayHit=" + rayHit +
                 '}';
     }
 }

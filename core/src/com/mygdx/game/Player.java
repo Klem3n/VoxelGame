@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.WorldBlock;
-import com.mygdx.game.collision.CollisionRay;
+import com.mygdx.game.collision.ray.CollisionRay;
 import com.mygdx.game.world.World;
 import com.mygdx.game.world.entity.Entity;
 
@@ -22,7 +22,7 @@ public class Player extends Entity {
     public Player(Camera camera, Vector3 position) {
         super(position, new Vector3(0.6f, 1.6f, 0.6f));
         this.camera = camera;
-        blockDetectionRay = new CollisionRay(this.camera.position, this.camera.direction, 3);
+        blockDetectionRay = new CollisionRay(this.camera.position, this.camera.direction, 3.5f);
         this.camera.position.set(this.position).add(0f, 1.5f, 0f);
     }
 
@@ -43,11 +43,19 @@ public class Player extends Entity {
 
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         /*
-         Block destroy
+         Block destroy and place
          */
-        if (button == 0) {
-            if (selectedBlock != null && selectedBlock.getPosition() != null && selectedBlock.getBlockType() != BlockType.AIR && selectedBlock.getBlockType() != BlockType.WATER) {
+        if (selectedBlock != null && selectedBlock.getPosition() != null && selectedBlock.getRayHit().isHit()) {
+            if (button == 0) {
                 getWorld().set(selectedBlock.getPosition(), BlockType.AIR);
+            } else if (button == 1) {
+                Vector3 placePosition = selectedBlock.getPosition().cpy().add(selectedBlock.getRayHit().getHitDirection());
+
+                BlockType type = getWorld().get(placePosition);
+
+                if (type == null || !type.isSolid()) {
+                    getWorld().set(placePosition, BlockType.DANDELION);
+                }
             }
         }
 

@@ -1,7 +1,6 @@
 package com.mygdx.game.block;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.VoxelGame;
 import com.mygdx.game.world.Chunk;
 import com.mygdx.game.world.World;
@@ -38,8 +37,6 @@ public abstract class BlockRenderer {
 
         return tiles[blockType.getBottomTexture()/tiles.length][blockType.getSideTexture()%tiles[0].length];
     }
-
-    public abstract boolean collides(BlockType blockType, Vector3 position);
 
     public abstract byte calculateFaceMasks(BlockType blockType, Chunk chunk, int x, int y, int z);
 }

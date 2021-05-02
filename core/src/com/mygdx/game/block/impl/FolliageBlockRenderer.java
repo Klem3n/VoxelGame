@@ -6,26 +6,12 @@ import com.mygdx.game.block.BlockRenderer;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.world.Chunk;
 
-import java.util.Map;
-
 public class FolliageBlockRenderer extends BlockRenderer {
     public static final FolliageBlockRenderer INSTANCE = new FolliageBlockRenderer();
 
     @Override
     public int render(BlockType type, float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z, byte faceMask) {
         return renderX(chunk.offset, x, y, z, verticies, vertexOffset, type);
-    }
-
-    @Override
-    public boolean collides(BlockType blockType, Vector3 position) {
-        position.x -= Math.floor(position.x);
-        position.y -= Math.floor(position.y);
-        position.z -= Math.floor(position.z);
-
-        float size = blockType.getSizeX();
-
-        return position.x >= (1 - size) / 2 && position.y < size && position.z >= (1 - size) / 2 &&
-                position.x < size + (1 - size) / 2 && position.z < size + (1 - size) / 2;
     }
 
     @Override

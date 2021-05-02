@@ -1,4 +1,4 @@
-package com.mygdx.game.collision;
+package com.mygdx.game.collision.ray;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -6,22 +6,24 @@ import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.world.World;
 
-import static com.mygdx.game.utils.Constants.*;
+import static com.mygdx.game.utils.Constants.floor;
 
 public class CollisionRay {
 
-    final Vector3 origin;
-    final Vector3 direction;
+    private final Vector3 origin;
+    private final Vector3 direction;
 
-    final float distance;
+    private final float distance;
 
-    public CollisionRay(final Vector3 origin, final Vector3 direction, final float distance){
+    public CollisionRay(final Vector3 origin, final Vector3 direction, final float distance) {
         this.origin = origin;
         this.direction = direction;
         this.distance = distance;
     }
 
-    public WorldBlock trace(){
+    public WorldBlock trace() {
+        World world = World.INSTANCE;
+
         float tMaxX, tMaxY, tMaxZ, tDeltaX, tDeltaY, tDeltaZ;
 
         Vector3 start = origin.cpy();
@@ -84,27 +86,43 @@ public class CollisionRay {
                     tMaxZ += tDeltaZ;
                 }
             }
-            if (tMaxX > 1 && tMaxY > 1 && tMaxZ > 1) break;
+            if (tMaxX > 1 && tMaxY > 1 && tMaxZ > 1) {
+                break;
+            }
 
-            passed.add(World.INSTANCE.get(voxel));
+            passed.add(world.get(voxel));
 
-            if (World.INSTANCE.get(voxel) != null && World.INSTANCE.get(voxel).collides(voxel)) {
-                return new WorldBlock(voxel, World.INSTANCE.get(voxel));
+            RayHit hit;
+
+            if (world.get(voxel) != null && (hit = world.get(voxel).collides(voxel, this)).isHit()) {
+                return new WorldBlock(voxel, world.get(voxel), hit);
             }
         }
 
-        return new WorldBlock(null, BlockType.AIR);
+        return new WorldBlock(null, BlockType.AIR, new RayHit(this, false));
     }
 
     private int getSign(float val){
         return val > 0 ? 1 : (val < 0 ? -1 : 0);
     }
 
-    private float frac0(float val){
+    private float frac0(float val) {
         return (float) (val - Math.floor(val));
     }
 
-    private float frac1(float val){
+    private float frac1(float val) {
         return (float) (1 - val + Math.floor(val));
+    }
+
+    public Vector3 getOrigin() {
+        return origin;
+    }
+
+    public Vector3 getDirection() {
+        return direction;
+    }
+
+    public float getDistance() {
+        return distance;
     }
 }

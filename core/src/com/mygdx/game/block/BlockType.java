@@ -5,6 +5,9 @@ import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.block.impl.DefaultBlockRenderer;
 import com.mygdx.game.block.impl.FolliageBlockRenderer;
 import com.mygdx.game.collision.Bounds;
+import com.mygdx.game.collision.ray.CollisionRay;
+import com.mygdx.game.collision.ray.RayHit;
+import com.mygdx.game.utils.RaycastUtils;
 import com.mygdx.game.world.Chunk;
 import com.mygdx.game.world.entity.Entity;
 
@@ -18,7 +21,7 @@ public enum BlockType {
     OAK_LEAVES(6, 53, 53, 53, true, DefaultBlockRenderer.INSTANCE),
     WATER(7, 205, 206, 206, false, 0.6f, 1f, 1f, 1f, DefaultBlockRenderer.INSTANCE),
     ROSE(8, 12, 12, 12, false, 0.5f, FolliageBlockRenderer.INSTANCE),
-    DANDELION(9, 13, 13, 13, false, 0.5f, FolliageBlockRenderer.INSTANCE),
+    DANDELION(9, 13, 13, 13, false, 1f, 0.5f, 0.5f, 0.5f, 0.25f, 0f, 0.25f, FolliageBlockRenderer.INSTANCE),
     ;
 
     private final boolean solid;
@@ -40,6 +43,10 @@ public enum BlockType {
     }
 
     BlockType(int id, int topTexture, int sideTexture, int bottomTexture, boolean solid, float alpha, float sizeX, float sizeY, float sizeZ, BlockRenderer blockRenderer, Bounds... bounds) {
+        this(id, topTexture, sideTexture, bottomTexture, solid, alpha, sizeX, sizeY, sizeZ, 0f, 0f, 0f, blockRenderer, bounds);
+    }
+
+    BlockType(int id, int topTexture, int sideTexture, int bottomTexture, boolean solid, float alpha, float sizeX, float sizeY, float sizeZ, float offsetX, float offsetY, float offsetZ, BlockRenderer blockRenderer, Bounds... bounds) {
         this.solid = solid;
         this.id = id;
         this.topTexture = topTexture;
@@ -50,9 +57,9 @@ public enum BlockType {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.sizeZ = sizeZ;
-        this.offsetX = 0;
-        this.offsetY = 0;
-        this.offsetZ = 0;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+        this.offsetZ = offsetZ;
 
         if (bounds.length == 0) {
             createBox();
@@ -127,9 +134,9 @@ public enum BlockType {
         return blockRenderer.render(this, verticies, vertexOffset, chunk, x, y, z, faceMask);
     }
 
-    public static BlockType getById(int id){
+    public static BlockType getById(int id) {
         for (BlockType b : values()) {
-            if(b.id == id){
+            if (b.id == id) {
                 return b;
             }
         }
@@ -137,12 +144,20 @@ public enum BlockType {
         return BlockType.AIR;
     }
 
-    public boolean collides(Vector3 toVec) {
-        if (blockRenderer == null) {
-            return false;
+    public RayHit collides(Vector3 blockPosition, CollisionRay ray) {
+        RayHit hit = new RayHit(ray, false);
+
+        if (blockRenderer == null || this == WATER || this == AIR) {
+            return hit;
         }
 
-        return blockRenderer.collides(this, toVec.cpy());
+        for (Bounds bound : bounds) {
+            if ((hit = RaycastUtils.intersect(blockPosition, bound, ray)).isHit()) {
+                return hit;
+            }
+        }
+
+        return hit;
     }
 
     public byte calculateFaceMasks(Chunk chunk, int x, int y, int z) {
