@@ -112,6 +112,13 @@ public class GameScreen extends ScreenAdapter {
     }
 
     @Override
+    public void resize(int width, int height) {
+        camera.viewportWidth = width;
+        camera.viewportHeight = height;
+        camera.update();
+    }
+
+    @Override
     public void dispose() {
         spriteBatch.dispose();
         font.dispose();
