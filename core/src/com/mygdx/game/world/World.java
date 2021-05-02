@@ -1,6 +1,7 @@
 package com.mygdx.game.world;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Vector3;
@@ -10,17 +11,24 @@ import com.badlogic.gdx.utils.Pool;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.impl.SelectedBlockRenderer;
 import com.mygdx.game.controller.PlayerController;
+import com.mygdx.game.utils.ThreadUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static com.mygdx.game.utils.Constants.*;
 
 public class World implements RenderableProvider, Disposable {
     public static World INSTANCE;
 
+    /**
+     * The ExecutorService.
+     */
+    private final ExecutorService chunkExecutor;
 
     public final Map<Vector3, Chunk> chunks = new ConcurrentHashMap<>();
     public static int RENDERED_CHUNKS;
@@ -32,11 +40,16 @@ public class World implements RenderableProvider, Disposable {
 
     private boolean isRunning;
 
-    public World(TextureRegion[][] tiles, PlayerController playerController) {
+    private final Material material;
+
+    public World(TextureRegion[][] tiles, PlayerController playerController, Material material) {
         INSTANCE = this;
         TEXTURE_TILES = tiles;
         this.playerController = playerController;
+        this.material = material;
         isRunning = true;
+
+        chunkExecutor = Executors.newFixedThreadPool(1, ThreadUtil.create("ClientSynchronizer"));
     }
 
     public void set(Vector3 position, BlockType blockType) {
@@ -140,7 +153,6 @@ public class World implements RenderableProvider, Disposable {
             chunk.render(renderables, pool, false);
         }
 
-
         /**
          * Renders a box around the block we're aiming at
          */
@@ -160,9 +172,18 @@ public class World implements RenderableProvider, Disposable {
         chunks.values().forEach(Chunk::dispose);
 
         Chunk.MESH_POOL.dispose();
+        chunkExecutor.shutdown();
     }
 
     public boolean isRunning() {
         return isRunning;
+    }
+
+    public ExecutorService getChunkExecutor() {
+        return chunkExecutor;
+    }
+
+    public Material getMaterial() {
+        return material;
     }
 }

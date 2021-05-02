@@ -1,22 +1,16 @@
 package com.mygdx.game.block.impl;
 
-import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Mesh;
+import com.badlogic.gdx.graphics.VertexAttribute;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g3d.Material;
-import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.graphics.g3d.Renderable;
-import com.badlogic.gdx.graphics.g3d.RenderableProvider;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
-import com.mygdx.game.VoxelGame;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.world.World;
-
-import java.util.Arrays;
 
 public class SelectedBlockRenderer {
     private static float[] VERTICES = new float[4*12*6];
@@ -24,8 +18,9 @@ public class SelectedBlockRenderer {
     private static Mesh mesh;
 
     public static void render(WorldBlock selectedBlock, Array<Renderable> renderables, Pool<Renderable> pool){
-        if(selectedBlock == null || selectedBlock.getPosition() == null || selectedBlock.getBlockType() == BlockType.AIR || selectedBlock.getBlockType() == BlockType.WATER)
+        if(selectedBlock == null || selectedBlock.getPosition() == null || selectedBlock.getBlockType() == BlockType.AIR || selectedBlock.getBlockType() == BlockType.WATER) {
             return;
+        }
 
         if(mesh == null){
             mesh = new Mesh(true, 4 * 12 * 6, 36,
@@ -65,7 +60,7 @@ public class SelectedBlockRenderer {
         mesh.setVertices(VERTICES, 0, vertexOffset);
         
         Renderable renderable = pool.obtain();
-        renderable.material = VoxelGame.MATERIAL;
+        renderable.material = World.INSTANCE.getMaterial();
         renderable.meshPart.mesh = mesh;
         renderable.meshPart.offset = 0;
         renderable.meshPart.size = vertexOffset / 8;

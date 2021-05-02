@@ -9,7 +9,6 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Pool;
-import com.mygdx.game.VoxelGame;
 import com.mygdx.game.block.BlockType;
 import com.mygdx.game.utils.ChunkMeshPool;
 
@@ -311,7 +310,7 @@ public class Chunk implements Disposable {
         }
 
         if (dirty) {
-            VoxelGame.CHUNK_EXECUTOR.submit(this::generate);
+            World.INSTANCE.getChunkExecutor().submit(this::generate);
             dirty = false;
         }
 
@@ -323,7 +322,7 @@ public class Chunk implements Disposable {
             }
 
             renderable = pool.obtain();
-            renderable.material = VoxelGame.MATERIAL;
+            renderable.material = World.INSTANCE.getMaterial();
             renderable.meshPart.mesh = mesh;
             renderable.meshPart.offset = 0;
             renderable.meshPart.size = vertAmount;
@@ -338,7 +337,7 @@ public class Chunk implements Disposable {
         }
 
         renderable = pool.obtain();
-        renderable.material = VoxelGame.MATERIAL;
+        renderable.material = World.INSTANCE.getMaterial();
         renderable.meshPart.mesh = meshTransparent;
         renderable.meshPart.offset = 0;
         renderable.meshPart.size = vertAmountTransparent;
