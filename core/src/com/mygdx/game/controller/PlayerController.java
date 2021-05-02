@@ -6,9 +6,9 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntIntMap;
-import com.mygdx.game.Player;
 import com.mygdx.game.VoxelGame;
 import com.mygdx.game.world.World;
+import com.mygdx.game.world.entity.player.Player;
 
 public class PlayerController extends InputAdapter {
     private static final float SPEED = 0.6f;
@@ -29,6 +29,9 @@ public class PlayerController extends InputAdapter {
 
     private final IntIntMap keys = new IntIntMap();
 
+    private int mouseX = 0;
+    private int mouseY = 0;
+
     public PlayerController(Camera camera, Vector3 position) {
         this.camera = camera;
         this.player = new Player(camera, position);
@@ -43,11 +46,34 @@ public class PlayerController extends InputAdapter {
     @Override
     public boolean keyUp(int keycode) {
         keys.remove(keycode, 0);
+
+        if (keycode >= Keys.NUM_0 && keycode <= Keys.NUM_9) {
+            if (keycode != Keys.NUM_0) {
+                player.getInventory().setSelectedIndex(keycode - 8);
+            } else {
+                player.getInventory().setSelectedIndex(9);
+            }
+        }
+
+        if (keycode >= Keys.NUMPAD_0 && keycode <= Keys.NUMPAD_9) {
+            if (keycode != Keys.NUMPAD_0) {
+                player.getInventory().setSelectedIndex(keycode - 145);
+            } else {
+                player.getInventory().setSelectedIndex(9);
+            }
+        }
+
         return true;
     }
 
-    private int mouseX = 0;
-    private int mouseY = 0;
+    @Override
+    public boolean scrolled(int amount) {
+        int index = Math.floorMod(player.getInventory().getSelectedIndex() + amount, 10);
+
+        player.getInventory().setSelectedIndex(index);
+
+        return false;
+    }
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {

@@ -2,8 +2,9 @@ package com.mygdx.game.block;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
-import com.mygdx.game.block.impl.DefaultBlockRenderer;
-import com.mygdx.game.block.impl.FolliageBlockRenderer;
+import com.mygdx.game.block.renderer.BlockRenderer;
+import com.mygdx.game.block.renderer.impl.DefaultBlockRenderer;
+import com.mygdx.game.block.renderer.impl.FolliageBlockRenderer;
 import com.mygdx.game.collision.Bounds;
 import com.mygdx.game.collision.ray.CollisionRay;
 import com.mygdx.game.collision.ray.RayHit;
@@ -17,7 +18,7 @@ public enum BlockType {
     DIRT(2, 2, 2, 2, true, DefaultBlockRenderer.INSTANCE),
     STONE(3, 6, 6, 6, true, DefaultBlockRenderer.INSTANCE),
     COBBLESTONE(4, 1, 1, 1, true, DefaultBlockRenderer.INSTANCE),
-    OAK_WOOD(5, 22, 21, 22, true, DefaultBlockRenderer.INSTANCE),
+    OAK_WOOD(5, 21, 20, 21, true, DefaultBlockRenderer.INSTANCE),
     OAK_LEAVES(6, 53, 53, 53, true, DefaultBlockRenderer.INSTANCE),
     WATER(7, 205, 206, 206, false, 0.6f, 1f, 1f, 1f, DefaultBlockRenderer.INSTANCE),
     ROSE(8, 12, 12, 12, false, 0.5f, FolliageBlockRenderer.INSTANCE),

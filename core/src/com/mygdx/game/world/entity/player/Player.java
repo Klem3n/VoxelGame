@@ -1,4 +1,4 @@
-package com.mygdx.game;
+package com.mygdx.game.world.entity.player;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
@@ -7,6 +7,7 @@ import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.collision.ray.CollisionRay;
 import com.mygdx.game.world.World;
 import com.mygdx.game.world.entity.Entity;
+import com.mygdx.game.world.entity.player.link.Inventory;
 
 /**
  * Takes a {@link Camera} instance and controls it via w,a,s,d and mouse panning.
@@ -19,11 +20,15 @@ public class Player extends Entity {
     private final CollisionRay blockDetectionRay;
     private WorldBlock selectedBlock;
 
+    private Inventory inventory;
+
     public Player(Camera camera, Vector3 position) {
         super(position, new Vector3(0.6f, 1.6f, 0.6f));
         this.camera = camera;
         blockDetectionRay = new CollisionRay(this.camera.position, this.camera.direction, 3.5f);
         this.camera.position.set(this.position).add(0f, 1.5f, 0f);
+
+        inventory = new Inventory();
     }
 
     @Override
@@ -53,8 +58,10 @@ public class Player extends Entity {
 
                 BlockType type = getWorld().get(placePosition);
 
-                if (type == null || !type.isSolid()) {
-                    getWorld().set(placePosition, BlockType.DANDELION);
+                BlockType toPlace = getInventory().getSelectedBlock();
+
+                if ((type == null || !type.isSolid()) && toPlace != BlockType.AIR) {
+                    getWorld().set(placePosition, toPlace);
                 }
             }
         }
@@ -77,5 +84,9 @@ public class Player extends Entity {
 
     public Vector3 getVelocity() {
         return velocity;
+    }
+
+    public Inventory getInventory() {
+        return inventory;
     }
 }

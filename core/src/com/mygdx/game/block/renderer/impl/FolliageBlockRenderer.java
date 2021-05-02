@@ -1,9 +1,9 @@
-package com.mygdx.game.block.impl;
+package com.mygdx.game.block.renderer.impl;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.block.BlockRenderer;
 import com.mygdx.game.block.BlockType;
+import com.mygdx.game.block.renderer.BlockRenderer;
 import com.mygdx.game.world.Chunk;
 
 public class FolliageBlockRenderer extends BlockRenderer {

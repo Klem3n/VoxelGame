@@ -16,15 +16,13 @@ import com.badlogic.gdx.graphics.g3d.attributes.*;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.Array;
 import com.mygdx.game.VoxelGame;
 import com.mygdx.game.assets.AssetDescriptors;
 import com.mygdx.game.controller.PlayerController;
+import com.mygdx.game.ui.Hud;
 import com.mygdx.game.world.World;
 import com.mygdx.game.world.entity.Entity;
-
-import static com.mygdx.game.utils.Constants.floor;
 
 public class GameScreen extends ScreenAdapter {
     private final VoxelGame game;
@@ -37,23 +35,23 @@ public class GameScreen extends ScreenAdapter {
     private Environment environment;
     private PlayerController playerController;
     private World world;
-
-    private Image crosshair;
+    private Hud hud;
 
     private Array<Entity> entities = new Array<>();
 
     public GameScreen(VoxelGame game) {
         this.game = game;
         this.assets = game.getAssets();
+        this.spriteBatch = game.getBatch();
 
         create();
     }
 
     public void create() {
-        crosshair = new Image(assets.get(AssetDescriptors.CROSSHAIR));
         Texture texture = assets.get(AssetDescriptors.TILES);
 
-        spriteBatch = new SpriteBatch();
+        hud = new Hud(assets, spriteBatch);
+
         font = new BitmapFont();
         modelBatch = new ModelBatch();
         DefaultShader.defaultCullFace = GL20.GL_FRONT;
@@ -83,20 +81,31 @@ public class GameScreen extends ScreenAdapter {
         Gdx.input.setCursorCatched(true);
     }
 
+    private void update(float deltaTime) {
+        playerController.update();
+
+        //Update all entities after player controller
+        entities.forEach(Entity::update);
+
+        hud.update(deltaTime);
+    }
+
     @Override
     public void render(float deltaTime) {
+        update(deltaTime);
+
         Gdx.gl.glClearColor(0.4f, 0.4f, 0.4f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
         modelBatch.begin(camera);
         modelBatch.render(world, environment);
         modelBatch.end();
-        playerController.update();
 
-        //Update all entities after player controller
-        entities.forEach(Entity::update);
+        spriteBatch.enableBlending();
+        spriteBatch.setProjectionMatrix(hud.getStage().getCamera().combined);
+        hud.getStage().draw();
 
-        spriteBatch.begin();
+        /*spriteBatch.begin();
 
         if (VoxelGame.DEBUG) {
             font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() + " Rendered chunks: " + World.RENDERED_CHUNKS +
@@ -108,7 +117,7 @@ public class GameScreen extends ScreenAdapter {
         crosshair.setPosition(Gdx.graphics.getWidth() / 2f - crosshair.getWidth() / 2, Gdx.graphics.getHeight() / 2f - crosshair.getHeight() / 2);
         crosshair.draw(spriteBatch, 1f);
 
-        spriteBatch.end();
+        spriteBatch.end();*/
     }
 
     @Override
@@ -116,11 +125,12 @@ public class GameScreen extends ScreenAdapter {
         camera.viewportWidth = width;
         camera.viewportHeight = height;
         camera.update();
+
+        hud.resize(width, height);
     }
 
     @Override
     public void dispose() {
-        spriteBatch.dispose();
         font.dispose();
         modelBatch.dispose();
         world.dispose();

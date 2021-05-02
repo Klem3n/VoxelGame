@@ -1,7 +1,8 @@
-package com.mygdx.game.block;
+package com.mygdx.game.block.renderer;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.mygdx.game.VoxelGame;
+import com.mygdx.game.block.BlockType;
 import com.mygdx.game.world.Chunk;
 import com.mygdx.game.world.World;
 

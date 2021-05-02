@@ -9,9 +9,10 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Pool;
 import com.mygdx.game.block.BlockType;
-import com.mygdx.game.block.impl.SelectedBlockRenderer;
+import com.mygdx.game.block.renderer.impl.SelectedBlockRenderer;
 import com.mygdx.game.controller.PlayerController;
 import com.mygdx.game.utils.ThreadUtil;
+import com.mygdx.game.world.entity.player.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -185,5 +186,9 @@ public class World implements RenderableProvider, Disposable {
 
     public Material getMaterial() {
         return material;
+    }
+
+    public Player getPlayer() {
+        return playerController.getPlayer();
     }
 }

@@ -1,4 +1,4 @@
-package com.mygdx.game.block.impl;
+package com.mygdx.game.block.renderer.impl;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;

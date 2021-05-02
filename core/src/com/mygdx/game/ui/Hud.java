@@ -1,92 +1,59 @@
 package com.mygdx.game.ui;
 
-import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.mygdx.game.assets.AssetDescriptors;
+import com.mygdx.game.ui.actor.HotbarActor;
+import com.mygdx.game.world.World;
+import com.mygdx.game.world.entity.player.Player;
 
 public class Hud implements Disposable {
-    public Stage stage;
-    private Viewport viewport;
+    private final AssetManager assets;
+    private final Stage stage;
+    private final Viewport viewport;
 
-    //Mario score/time Tracking Variables
-    private Integer worldTimer;
-    private boolean timeUp; // true when the world timer reaches 0
-    private float timeCount;
-    private static Integer score;
+    private Image crosshair;
 
-    //Scene2D widgets
-    private Label countdownLabel;
-    private static Label scoreLabel;
-    private Label timeLabel;
-    private Label levelLabel;
-    private Label worldLabel;
-    private Label marioLabel;
+    private HotbarActor hotbarActor;
 
-    public Hud(SpriteBatch sb) {
-        //define our tracking variables
-        worldTimer = 300;
-        timeCount = 0;
-        score = 0;
+    public Hud(AssetManager assets, SpriteBatch sb) {
+        this.assets = assets;
 
+        crosshair = new Image(assets.get(AssetDescriptors.CROSSHAIR));
 
-        //setup the HUD viewport using a new camera seperate from our gamecam
-        //define our stage using that viewport and our games spritebatch
-        viewport = new FitViewport(400, 208, new OrthographicCamera());
+        viewport = new ScreenViewport(new OrthographicCamera());
         stage = new Stage(viewport, sb);
 
-        //define a table used to organize our hud's labels
         Table table = new Table();
-        //Top-Align table
-        table.top();
-        //make the table fill the entire stage
         table.setFillParent(true);
 
-        //define our labels using the String, and a Label style consisting of a font and color
-        countdownLabel = new Label(String.format("%03d", worldTimer), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        scoreLabel = new Label(String.format("%06d", score), new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        timeLabel = new Label("TIME", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        levelLabel = new Label("1-1", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        worldLabel = new Label("WORLD", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
-        marioLabel = new Label("MARIO", new Label.LabelStyle(new BitmapFont(), Color.WHITE));
+        table.add(crosshair).expand();
 
-        //add our labels to our table, padding the top, and giving them all equal width with expandX
-        table.add(marioLabel).expandX().padTop(10);
-        table.add(worldLabel).expandX().padTop(10);
-        table.add(timeLabel).expandX().padTop(10);
-        //add a second row to our table
-        table.row();
-        table.add(scoreLabel).expandX();
-        table.add(levelLabel).expandX();
-        table.add(countdownLabel).expandX();
+        hotbarActor = new HotbarActor(assets);
 
-        //add our table to the stage
         stage.addActor(table);
-
+        stage.addActor(hotbarActor);
     }
 
     public void update(float dt) {
-        timeCount += dt;
-        if (timeCount >= 1) {
-            if (worldTimer > 0) {
-                worldTimer--;
-            } else {
-                timeUp = true;
-            }
-            countdownLabel.setText(String.format("%03d", worldTimer));
-            timeCount = 0;
+        Player player = World.INSTANCE.getPlayer();
+
+        if (player.getInventory().isDirty()) {
+            hotbarActor.update(player.getInventory());
+
+            player.getInventory().setDirty(false);
         }
     }
 
-    public static void addScore(int value) {
-        score += value;
-        scoreLabel.setText(String.format("%06d", score));
+    public void resize(int width, int height) {
+        viewport.update(width, height, true);
     }
 
     @Override
@@ -94,7 +61,7 @@ public class Hud implements Disposable {
         stage.dispose();
     }
 
-    public boolean isTimeUp() {
-        return timeUp;
+    public Stage getStage() {
+        return stage;
     }
 }

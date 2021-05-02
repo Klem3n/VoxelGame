@@ -2,6 +2,7 @@ package com.mygdx.game;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.assets.AssetManager;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.mygdx.game.assets.AssetDescriptors;
 import com.mygdx.game.ui.ScreenType;
 import com.mygdx.game.ui.screen.GameScreen;
@@ -9,8 +10,29 @@ import com.mygdx.game.ui.screen.LoadScreen;
 
 public class VoxelGame extends Game {
 	private final AssetManager assets = new AssetManager();
+	private SpriteBatch batch;
 
 	public static boolean DEBUG = false;
+
+	@Override
+	public void create() {
+		assets.load(AssetDescriptors.TILES);
+		assets.load(AssetDescriptors.CROSSHAIR);
+		assets.load(AssetDescriptors.HOTBAR);
+		assets.load(AssetDescriptors.HOTBAR_SELECTED);
+
+		batch = new SpriteBatch();
+
+		gotoScreen(ScreenType.LOAD_SCREEN);
+	}
+
+	@Override
+	public void dispose() {
+		assets.dispose();
+		batch.dispose();
+
+		super.dispose();
+	}
 
 	public void gotoScreen(ScreenType screenType) {
 		switch (screenType) {
@@ -30,11 +52,7 @@ public class VoxelGame extends Game {
 		return assets;
 	}
 
-	@Override
-	public void create() {
-		assets.load(AssetDescriptors.TILES);
-		assets.load(AssetDescriptors.CROSSHAIR);
-
-		gotoScreen(ScreenType.LOAD_SCREEN);
+	public SpriteBatch getBatch() {
+		return batch;
 	}
 }
