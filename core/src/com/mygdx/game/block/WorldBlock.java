@@ -5,12 +5,12 @@ import com.mygdx.game.collision.ray.RayHit;
 
 public class WorldBlock {
     private Vector3 position;
-    private BlockType blockType;
+    private Block block;
     private RayHit rayHit;
 
-    public WorldBlock(Vector3 position, BlockType blockType, RayHit rayHit) {
+    public WorldBlock(Vector3 position, Block block, RayHit rayHit) {
         this.position = position;
-        this.blockType = blockType;
+        this.block = block;
         this.rayHit = rayHit;
     }
 
@@ -22,12 +22,12 @@ public class WorldBlock {
         this.position = position;
     }
 
-    public BlockType getBlockType() {
-        return blockType;
+    public Block getBlock() {
+        return block;
     }
 
-    public void setBlockType(BlockType blockType) {
-        this.blockType = blockType;
+    public void setBlock(Block block) {
+        this.block = block;
     }
 
     public RayHit getRayHit() {
@@ -42,7 +42,7 @@ public class WorldBlock {
     public String toString() {
         return "WorldBlock{" +
                 "position=" + position +
-                ", blockType=" + blockType +
+                ", blockType=" + block +
                 ", rayHit=" + rayHit +
                 '}';
     }

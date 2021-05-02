@@ -60,8 +60,8 @@ project(":core") {
         api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
         compile "com.badlogicgames.gdx:gdx-tools:$gdxVersion"
         api "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-        
+
         // https://mvnrepository.com/artifact/com.google.guava/guava
-        compile group: 'com.google.guava', name: 'guava', version: '11.0.2'
+        implementation group: 'com.google.guava', name: 'guava', version: '29.0-jre'
     }
 }

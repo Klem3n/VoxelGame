@@ -2,7 +2,7 @@ package com.mygdx.game.world.entity.player;
 
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.block.BlockType;
+import com.mygdx.game.block.Block;
 import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.collision.ray.CollisionRay;
 import com.mygdx.game.world.World;
@@ -25,7 +25,7 @@ public class Player extends Entity {
     public Player(Camera camera, Vector3 position) {
         super(position, new Vector3(0.6f, 1.6f, 0.6f));
         this.camera = camera;
-        blockDetectionRay = new CollisionRay(this.camera.position, this.camera.direction, 3.5f);
+        blockDetectionRay = new CollisionRay(this.camera.position, this.camera.direction, 4f);
         this.camera.position.set(this.position).add(0f, 1.5f, 0f);
 
         inventory = new Inventory();
@@ -52,15 +52,15 @@ public class Player extends Entity {
          */
         if (selectedBlock != null && selectedBlock.getPosition() != null && selectedBlock.getRayHit().isHit()) {
             if (button == 0) {
-                getWorld().set(selectedBlock.getPosition(), BlockType.AIR);
+                getWorld().set(selectedBlock.getPosition(), Block.AIR);
             } else if (button == 1) {
                 Vector3 placePosition = selectedBlock.getPosition().cpy().add(selectedBlock.getRayHit().getHitDirection());
 
-                BlockType type = getWorld().get(placePosition);
+                Block type = getWorld().get(placePosition);
 
-                BlockType toPlace = getInventory().getSelectedBlock();
+                Block toPlace = getInventory().getSelectedBlock();
 
-                if ((type == null || !type.isSolid()) && toPlace != BlockType.AIR) {
+                if ((type == null || !type.isSolid()) && toPlace != Block.AIR) {
                     getWorld().set(placePosition, toPlace);
                 }
             }

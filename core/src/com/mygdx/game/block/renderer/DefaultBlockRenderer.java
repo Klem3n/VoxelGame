@@ -1,67 +1,65 @@
-package com.mygdx.game.block.renderer.impl;
+package com.mygdx.game.block.renderer;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.block.BlockType;
-import com.mygdx.game.block.renderer.BlockRenderer;
+import com.mygdx.game.block.Block;
 import com.mygdx.game.world.Chunk;
 
-public class DefaultBlockRenderer extends BlockRenderer {
-    public static final DefaultBlockRenderer INSTANCE = new DefaultBlockRenderer();
+import static com.mygdx.game.utils.TextureUtils.getBlockTexture;
 
-    @Override
-    public int render(BlockType type, float[] vertices, int vertexOffset, Chunk chunk, int x, int y, int z, byte faceMask) {
+public class DefaultBlockRenderer {
+
+    public static int render(float[] vertices, int vertexOffset, Chunk chunk, int topTexture, int sideTexture, int bottomTexture, float alpha, int x, int y, int z, byte faceMask) {
         if ((faceMask & 0x1) != 0) {
-            vertexOffset = createTop(chunk.offset, x, y, z, vertices, vertexOffset, getTopTexture(type), type);
+            vertexOffset = createTop(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(topTexture), alpha);
         }
         if ((faceMask & 0x2) != 0) {
-            vertexOffset = createBottom(chunk.offset, x, y, z, vertices, vertexOffset, getBottomTexture(type), type);
+            vertexOffset = createBottom(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(bottomTexture), alpha);
         }
         if ((faceMask & 0x4) != 0) {
-            vertexOffset = createLeft(chunk.offset, x, y, z, vertices, vertexOffset, getSideTexture(type), type);
+            vertexOffset = createLeft(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
         }
         if ((faceMask & 0x8) != 0) {
-            vertexOffset = createRight(chunk.offset, x, y, z, vertices, vertexOffset, getSideTexture(type), type);
+            vertexOffset = createRight(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
         }
         if ((faceMask & 0x10) != 0) {
-            vertexOffset = createFront(chunk.offset, x, y, z, vertices, vertexOffset, getSideTexture(type), type);
+            vertexOffset = createFront(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
         }
         if ((faceMask & 0x20) != 0) {
-            vertexOffset = createBack(chunk.offset, x, y, z, vertices, vertexOffset, getSideTexture(type), type);
+            vertexOffset = createBack(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
         }
 
 
         return vertexOffset;
     }
 
-    @Override
-    public byte calculateFaceMasks(BlockType blockType, Chunk chunk, int x, int y, int z) {
+    public static byte calculateFaceMasks(Block block, Chunk chunk, int x, int y, int z) {
         byte mask = 0;
 
-        if (renderTop(blockType, chunk, x, y, z)) {
+        if (renderTop(block, chunk, x, y, z)) {
             mask |= 0x1;
         }
-        if (renderBottom(blockType, chunk, x, y, z)) {
+        if (renderBottom(block, chunk, x, y, z)) {
             mask |= 0x2;
         }
-        if (renderLeft(blockType, chunk, x, y, z)) {
+        if (renderLeft(block, chunk, x, y, z)) {
             mask |= 0x4;
         }
-        if (renderRight(blockType, chunk, x, y, z)) {
+        if (renderRight(block, chunk, x, y, z)) {
             mask |= 0x8;
         }
-        if (renderFront(blockType, chunk, x, y, z)) {
+        if (renderFront(block, chunk, x, y, z)) {
             mask |= 0x10;
         }
-        if (renderBack(blockType, chunk, x, y, z)) {
+        if (renderBack(block, chunk, x, y, z)) {
             mask |= 0x20;
         }
 
         return mask;
     }
 
-    private boolean renderTop(BlockType render, Chunk chunk, int x, int y, int z) {
-        BlockType blockType = chunk.getBlock(x, y + 1, z);
+    private static boolean renderTop(Block render, Chunk chunk, int x, int y, int z) {
+        Block blockType = chunk.getBlock(x, y + 1, z);
 
         if (blockType == null) {
             return false;
@@ -74,8 +72,8 @@ public class DefaultBlockRenderer extends BlockRenderer {
         }
     }
 
-    private boolean renderBottom(BlockType render, Chunk chunk, int x, int y, int z) {
-        BlockType blockType = chunk.getBlock(x, y - 1, z);
+    private static boolean renderBottom(Block render, Chunk chunk, int x, int y, int z) {
+        Block blockType = chunk.getBlock(x, y - 1, z);
 
         if (blockType == null) {
             return false;
@@ -88,8 +86,8 @@ public class DefaultBlockRenderer extends BlockRenderer {
         }
     }
 
-    private boolean renderLeft(BlockType render, Chunk chunk, int x, int y, int z) {
-        BlockType blockType = chunk.getBlock(x - 1, y, z);
+    private static boolean renderLeft(Block render, Chunk chunk, int x, int y, int z) {
+        Block blockType = chunk.getBlock(x - 1, y, z);
 
         if (blockType == null) {
             return false;
@@ -102,8 +100,8 @@ public class DefaultBlockRenderer extends BlockRenderer {
         }
     }
 
-    private boolean renderRight(BlockType render, Chunk chunk, int x, int y, int z) {
-        BlockType blockType = chunk.getBlock(x + 1, y, z);
+    private static boolean renderRight(Block render, Chunk chunk, int x, int y, int z) {
+        Block blockType = chunk.getBlock(x + 1, y, z);
 
         if (blockType == null) {
             return false;
@@ -116,8 +114,8 @@ public class DefaultBlockRenderer extends BlockRenderer {
         }
     }
 
-    private boolean renderFront(BlockType render, Chunk chunk, int x, int y, int z) {
-        BlockType blockType = chunk.getBlock(x, y, z - 1);
+    private static boolean renderFront(Block render, Chunk chunk, int x, int y, int z) {
+        Block blockType = chunk.getBlock(x, y, z - 1);
 
         if (blockType == null) {
             return false;
@@ -130,8 +128,8 @@ public class DefaultBlockRenderer extends BlockRenderer {
         }
     }
 
-    private boolean renderBack(BlockType render, Chunk chunk, int x, int y, int z) {
-        BlockType blockType = chunk.getBlock(x, y, z + 1);
+    private static boolean renderBack(Block render, Chunk chunk, int x, int y, int z) {
+        Block blockType = chunk.getBlock(x, y, z + 1);
 
         if (blockType == null) {
             return false;
@@ -144,13 +142,9 @@ public class DefaultBlockRenderer extends BlockRenderer {
         }
     }
 
-    public int createTop(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        float sizeX = blockType.getSizeX();
-        float sizeY = blockType.getSizeY();
-        float sizeZ = blockType.getSizeZ();
-
+    public static int createTop(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, float alpha) {
         vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
+        vertices[vertexOffset++] = offset.y + y + 1;
         vertices[vertexOffset++] = offset.z + z;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 1;
@@ -160,10 +154,10 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
+        vertices[vertexOffset++] = offset.x + x + 1;
+        vertices[vertexOffset++] = offset.y + y + 1;
         vertices[vertexOffset++] = offset.z + z;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 1;
@@ -173,11 +167,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.x + x + 1;
+        vertices[vertexOffset++] = offset.y + y + 1;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 0;
@@ -186,11 +180,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.y + y + 1;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 0;
@@ -199,16 +193,12 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         return vertexOffset;
     }
 
-    public int createBottom(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        float sizeX = blockType.getSizeX();
-        float sizeY = blockType.getSizeY();
-        float sizeZ = blockType.getSizeZ();
-
+    public static int createBottom(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, float alpha) {
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
@@ -220,11 +210,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = -1;
         vertices[vertexOffset++] = 0;
@@ -233,11 +223,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
+        vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = -1;
         vertices[vertexOffset++] = 0;
@@ -246,9 +236,9 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
+        vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
         vertices[vertexOffset++] = 0;
@@ -259,16 +249,12 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         return vertexOffset;
     }
 
-    public int createLeft(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        float sizeX = blockType.getSizeX();
-        float sizeY = blockType.getSizeY();
-        float sizeZ = blockType.getSizeZ();
-
+    public static int createLeft(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, float alpha) {
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
@@ -280,10 +266,10 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
+        vertices[vertexOffset++] = offset.y + y + 1;
         vertices[vertexOffset++] = offset.z + z;
         vertices[vertexOffset++] = -1;
         vertices[vertexOffset++] = 0;
@@ -293,11 +279,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.y + y + 1;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = -1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
@@ -306,11 +292,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = -1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
@@ -319,17 +305,13 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         return vertexOffset;
     }
 
-    public int createRight(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        float sizeX = blockType.getSizeX();
-        float sizeY = blockType.getSizeY();
-        float sizeZ = blockType.getSizeZ();
-
-        vertices[vertexOffset++] = offset.x + x + sizeX;
+    public static int createRight(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, float alpha) {
+        vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
         vertices[vertexOffset++] = 1;
@@ -340,11 +322,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
+        vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
@@ -353,11 +335,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.x + x + 1;
+        vertices[vertexOffset++] = offset.y + y + 1;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
@@ -366,10 +348,10 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
+        vertices[vertexOffset++] = offset.x + x + 1;
+        vertices[vertexOffset++] = offset.y + y + 1;
         vertices[vertexOffset++] = offset.z + z;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 0;
@@ -379,16 +361,12 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         return vertexOffset;
     }
 
-    public int createFront(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        float sizeX = blockType.getSizeX();
-        float sizeY = blockType.getSizeY();
-        float sizeZ = blockType.getSizeZ();
-
+    public static int createFront(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, float alpha) {
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
@@ -400,9 +378,9 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
+        vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
         vertices[vertexOffset++] = offset.z + z;
         vertices[vertexOffset++] = 0;
@@ -413,10 +391,10 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
+        vertices[vertexOffset++] = offset.x + x + 1;
+        vertices[vertexOffset++] = offset.y + y + 1;
         vertices[vertexOffset++] = offset.z + z;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
@@ -426,10 +404,10 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
+        vertices[vertexOffset++] = offset.y + y + 1;
         vertices[vertexOffset++] = offset.z + z;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
@@ -439,19 +417,15 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         return vertexOffset;
     }
 
-    public int createBack(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, BlockType blockType) {
-        float sizeX = blockType.getSizeX();
-        float sizeY = blockType.getSizeY();
-        float sizeZ = blockType.getSizeZ();
-
+    public static int createBack(Vector3 offset, int x, int y, int z, float[] vertices, int vertexOffset, TextureRegion textureRegion, float alpha) {
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = -1;
@@ -460,11 +434,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.y + y + 1;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = -1;
@@ -473,11 +447,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
-        vertices[vertexOffset++] = offset.y + y + sizeY;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.x + x + 1;
+        vertices[vertexOffset++] = offset.y + y + 1;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = -1;
@@ -486,11 +460,11 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
-        vertices[vertexOffset++] = offset.x + x + sizeX;
+        vertices[vertexOffset++] = offset.x + x + 1;
         vertices[vertexOffset++] = offset.y + y;
-        vertices[vertexOffset++] = offset.z + z + sizeZ;
+        vertices[vertexOffset++] = offset.z + z + 1;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = 0;
         vertices[vertexOffset++] = -1;
@@ -499,7 +473,7 @@ public class DefaultBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         return vertexOffset;
     }

@@ -8,8 +8,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Pool;
-import com.mygdx.game.block.BlockType;
-import com.mygdx.game.block.renderer.impl.SelectedBlockRenderer;
+import com.mygdx.game.block.Block;
+import com.mygdx.game.block.renderer.SelectedBlockRenderer;
 import com.mygdx.game.controller.PlayerController;
 import com.mygdx.game.utils.ThreadUtil;
 import com.mygdx.game.world.entity.player.Player;
@@ -53,11 +53,11 @@ public class World implements RenderableProvider, Disposable {
         chunkExecutor = Executors.newFixedThreadPool(1, ThreadUtil.create("ClientSynchronizer"));
     }
 
-    public void set(Vector3 position, BlockType blockType) {
-        set(position.x, position.y, position.z, blockType);
+    public void set(Vector3 position, Block block) {
+        set(position.x, position.y, position.z, block);
     }
 
-    public void set (float x, float y, float z, BlockType blockType) {
+    public void set(float x, float y, float z, Block block) {
         int ix = floor(x);
         int iy = floor(y);
         int iz = floor(z);
@@ -67,18 +67,18 @@ public class World implements RenderableProvider, Disposable {
 
         Chunk chunk;
 
-        if((chunk = chunks.get(new Vector3(chunkX, chunkY, chunkZ))) == null){
+        if ((chunk = chunks.get(new Vector3(chunkX, chunkY, chunkZ))) == null) {
             return;
         }
 
-        chunk.set(Math.floorMod(ix, CHUNK_SIZE_X), Math.floorMod(iy, CHUNK_SIZE_Y), Math.floorMod(iz, CHUNK_SIZE_Z), blockType);
+        chunk.set(Math.floorMod(ix, CHUNK_SIZE_X), Math.floorMod(iy, CHUNK_SIZE_Y), Math.floorMod(iz, CHUNK_SIZE_Z), block);
     }
 
-    public BlockType get (Vector3 position) {
+    public Block get(Vector3 position) {
         return get(position.x, position.y, position.z);
     }
 
-    public BlockType get (float x, float y, float z) {
+    public Block get(float x, float y, float z) {
         int ix = floor(x);
         int iy = floor(y);
         int iz = floor(z);
@@ -88,7 +88,7 @@ public class World implements RenderableProvider, Disposable {
 
         Chunk chunk;
 
-        if((chunk = chunks.get(new Vector3(chunkX, chunkY, chunkZ))) == null){
+        if ((chunk = chunks.get(new Vector3(chunkX, chunkY, chunkZ))) == null) {
             return null;
         }
 
@@ -100,8 +100,8 @@ public class World implements RenderableProvider, Disposable {
         int iz = (int) z;
 
         for (int y = RENDER_DISTANCE * CHUNK_SIZE_Y - 1; y > 0; y--) {
-            BlockType blockType = get(ix, y, iz);
-            if (blockType != null && blockType != BlockType.AIR) {
+            Block block = get(ix, y, iz);
+            if (block != null && block != Block.AIR) {
                 return y + 3;
             }
         }

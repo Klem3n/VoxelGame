@@ -1,6 +1,6 @@
 package com.mygdx.game.world.entity.player.link;
 
-import com.mygdx.game.block.BlockType;
+import com.mygdx.game.block.Block;
 
 public class Inventory {
     public static final int HOTBAR_SIZE = 10;
@@ -42,13 +42,13 @@ public class Inventory {
         this.dirty = dirty;
     }
 
-    public BlockType getSelectedBlock() {
+    public Block getSelectedBlock() {
         Item item = hotbar[selectedIndex];
 
         if (item != null) {
-            return item.getBlockType();
+            return item.getBlock();
         }
 
-        return BlockType.AIR;
+        return Block.AIR;
     }
 }

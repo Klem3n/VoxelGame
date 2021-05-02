@@ -2,7 +2,7 @@ package com.mygdx.game.collision.ray;
 
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
-import com.mygdx.game.block.BlockType;
+import com.mygdx.game.block.Block;
 import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.world.World;
 
@@ -66,7 +66,7 @@ public class CollisionRay {
             tMaxZ = tDeltaZ * frac0(start.z) - 0.5f;
         }
 
-        Array<BlockType> passed = new Array<>();
+        Array<Block> passed = new Array<>();
 
         while (true) {
             if (tMaxX < tMaxY) {
@@ -99,7 +99,7 @@ public class CollisionRay {
             }
         }
 
-        return new WorldBlock(null, BlockType.AIR, new RayHit(this, false));
+        return new WorldBlock(null, Block.AIR, new RayHit(this, false));
     }
 
     private int getSign(float val){

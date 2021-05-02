@@ -1,31 +1,22 @@
-package com.mygdx.game.block.renderer.impl;
+package com.mygdx.game.block.renderer;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.block.BlockType;
-import com.mygdx.game.block.renderer.BlockRenderer;
 import com.mygdx.game.world.Chunk;
 
-public class FolliageBlockRenderer extends BlockRenderer {
-    public static final FolliageBlockRenderer INSTANCE = new FolliageBlockRenderer();
+import static com.mygdx.game.utils.TextureUtils.getBlockTexture;
 
-    @Override
-    public int render(BlockType type, float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z, byte faceMask) {
-        return renderX(chunk.offset, x, y, z, verticies, vertexOffset, type);
+public class FolliageBlockRenderer {
+
+    public static int render(float[] verticies, int vertexOffset, Chunk chunk, int texture, float alpha, float size, int x, int y, int z, byte faceMask) {
+        return renderX(chunk.offset, x, y, z, verticies, vertexOffset, texture, alpha, size);
     }
 
-    @Override
-    public byte calculateFaceMasks(BlockType blockType, Chunk chunk, int x, int y, int z) {
-        return 0;
-    }
+    public static int renderX(Vector3 offset, float x, float y, float z, float[] vertices, int vertexOffset, int texture, float alpha, float size) {
+        TextureRegion textureRegion = getBlockTexture(texture);
 
-    public int renderX(Vector3 offset, float x, float y, float z, float[] vertices, int vertexOffset, BlockType blockType) {
-        TextureRegion textureRegion = getSideTexture(blockType);
-
-        float size = blockType.getSizeX();
-
-        x += (1 - size)/2;
-        z += (1 - size)/2;
+        x += (1 - size) / 2;
+        z += (1 - size) / 2;
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
@@ -38,7 +29,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + size;
@@ -51,7 +42,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x + size;
         vertices[vertexOffset++] = offset.y + y + size;
@@ -64,7 +55,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x + size;
         vertices[vertexOffset++] = offset.y + y;
@@ -77,7 +68,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         //SECOND FACE
         vertices[vertexOffset++] = offset.x + x + size;
@@ -91,7 +82,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x + size;
         vertices[vertexOffset++] = offset.y + y + size;
@@ -104,7 +95,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + size;
@@ -117,7 +108,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
@@ -130,7 +121,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         //THIRD FACE
         vertices[vertexOffset++] = offset.x + x + size;
@@ -144,7 +135,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x + size;
         vertices[vertexOffset++] = offset.y + y + size;
@@ -157,7 +148,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + size;
@@ -170,7 +161,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y;
@@ -183,7 +174,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         //FOURTH FACE
         vertices[vertexOffset++] = offset.x + x;
@@ -197,7 +188,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x;
         vertices[vertexOffset++] = offset.y + y + size;
@@ -210,7 +201,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x + size;
         vertices[vertexOffset++] = offset.y + y + size;
@@ -223,7 +214,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
 
         vertices[vertexOffset++] = offset.x + x + size;
         vertices[vertexOffset++] = offset.y + y;
@@ -236,7 +227,7 @@ public class FolliageBlockRenderer extends BlockRenderer {
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
         vertices[vertexOffset++] = 1;
-        vertices[vertexOffset++] = blockType.getAlpha();
+        vertices[vertexOffset++] = alpha;
         return vertexOffset;
     }
 }

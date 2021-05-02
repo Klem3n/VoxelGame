@@ -1,6 +1,7 @@
 package com.mygdx.game.world.entity.player.link;
 
-import com.mygdx.game.block.BlockType;
+import com.mygdx.game.block.Block;
+import com.mygdx.game.block.BlockManager;
 
 public class Item {
     private int id;
@@ -27,8 +28,8 @@ public class Item {
         this.amount = amount;
     }
 
-    public BlockType getBlockType() {
-        return BlockType.getById(id);
+    public Block getBlock() {
+        return BlockManager.getById(id);
     }
 
     @Override

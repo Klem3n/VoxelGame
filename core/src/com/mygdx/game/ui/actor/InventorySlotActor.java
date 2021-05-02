@@ -60,7 +60,7 @@ public class InventorySlotActor extends Image {
         this.item = item;
 
         if (item != null) {
-            int topTexture = item.getBlockType().getSideTexture();
+            int topTexture = item.getBlock().getInventoryTexture();
             TextureRegion[][] tiles = World.TEXTURE_TILES;
 
             if (topTexture >= 0 && topTexture <= tiles.length * tiles[0].length) {

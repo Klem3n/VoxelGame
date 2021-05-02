@@ -1,7 +1,7 @@
 package com.mygdx.game.collision;
 
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.block.BlockType;
+import com.mygdx.game.block.Block;
 import com.mygdx.game.utils.Constants;
 import com.mygdx.game.world.World;
 import com.mygdx.game.world.entity.Entity;
@@ -44,7 +44,7 @@ public class EntityBounds extends Bounds {
                 for (int z = 0; z <= Constants.ceil(getDepth()); z++) {
                     Vector3 blockPosition = Constants.floor(new Vector3(x + position.x + dx, y + position.y + dy, z + position.z + dz));
 
-                    BlockType type = world.get(blockPosition);
+                    Block type = world.get(blockPosition);
 
                     if (type != null && type.collides(entity, position.cpy().add(dx, dy, dz), blockPosition)) {
                         return true;

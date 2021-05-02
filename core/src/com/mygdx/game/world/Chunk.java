@@ -9,7 +9,8 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 import com.badlogic.gdx.utils.Pool;
-import com.mygdx.game.block.BlockType;
+import com.mygdx.game.block.Block;
+import com.mygdx.game.block.BlockManager;
 import com.mygdx.game.utils.ChunkMeshPool;
 
 import static com.mygdx.game.utils.Constants.*;
@@ -97,15 +98,15 @@ public class Chunk implements Disposable {
 
                     if(actualHeight > heightMap){
                         if(actualHeight <=0){
-                            setFast(x, y, z, BlockType.WATER);
+                            setFast(x, y, z, 7);
                         }
                     } else {
                         if(heightMap - actualHeight == 0){
-                            setFast(x, y, z, BlockType.GRASS);
+                            setFast(x, y, z, 1);
                         } else if(heightMap - actualHeight < 6){
-                            setFast(x, y, z, BlockType.DIRT);
+                            setFast(x, y, z, 2);
                         } else {
-                            setFast(x, y, z, BlockType.STONE);
+                            setFast(x, y, z, 3);
                         }
                     }
                 }
@@ -117,24 +118,24 @@ public class Chunk implements Disposable {
         updateNeighborChunks();
     }
 
-    public BlockType get (int x, int y, int z) {
+    public Block get(int x, int y, int z) {
         if (x < 0 || x >= width) {
-            return BlockType.AIR;
+            return Block.AIR;
         }
         if (y < 0 || y >= height) {
-            return BlockType.AIR;
+            return Block.AIR;
         }
         if (z < 0 || z >= depth) {
-            return BlockType.AIR;
+            return Block.AIR;
         }
         return getFast(x, y, z);
     }
 
-    public BlockType getFast (int x, int y, int z) {
-        return BlockType.getById(voxels[x + z * width + y * widthTimesHeight]);
+    public Block getFast(int x, int y, int z) {
+        return BlockManager.getById(voxels[x + z * width + y * widthTimesHeight]);
     }
 
-    public void set (int x, int y, int z, BlockType blockType) {
+    public void set(int x, int y, int z, Block block) {
         if (x < 0 || x >= width) {
             return;
         }
@@ -144,7 +145,7 @@ public class Chunk implements Disposable {
         if (z < 0 || z >= depth) {
             return;
         }
-        setFast(x, y, z, blockType);
+        setFast(x, y, z, block);
 
         float xDiff = 0;
         float yDiff = 0;
@@ -185,14 +186,24 @@ public class Chunk implements Disposable {
         neighbors.forEach(pos -> {
             Chunk neighbor = World.INSTANCE.chunks.get(pos.add(chunkPosition));
 
-            if(neighbor != null){
+            if (neighbor != null) {
                 neighbor.dirty = true;
             }
         });
     }
 
-    public void setFast(int x, int y, int z, BlockType blockType) {
-        voxels[x + z * width + y * widthTimesHeight] = (byte) blockType.getId();
+    public void setFast(int x, int y, int z, Block block) {
+        voxels[x + z * width + y * widthTimesHeight] = (byte) block.getId();
+        dirty = true;
+    }
+
+    public void setFast(int x, int y, int z, byte id) {
+        voxels[x + z * width + y * widthTimesHeight] = id;
+        dirty = true;
+    }
+
+    private void setFast(int x, int y, int z, int id) {
+        voxels[x + z * width + y * widthTimesHeight] = (byte) id;
         dirty = true;
     }
 
@@ -228,13 +239,13 @@ public class Chunk implements Disposable {
                 for (int x = 0; x < width; x++, i++) {
                     byte voxel = voxels[i];
 
-                    BlockType blockType = BlockType.getById(voxel);
+                    Block block = BlockManager.getById(voxel);
 
-                    if (blockType == null || blockType.equals(BlockType.AIR)) {
+                    if (block == null || block.equals(Block.AIR)) {
                         continue;
                     }
 
-                    faceMasks[i] = blockType.calculateFaceMasks(this, x, y, z);
+                    faceMasks[i] = block.calculateFaceMasks(this, x, y, z);
                 }
             }
         }
@@ -251,13 +262,13 @@ public class Chunk implements Disposable {
                     byte voxel = voxels[i];
                     byte faceMask = faceMasks[i];
 
-                    BlockType blockType = BlockType.getById(voxel);
+                    Block block = BlockManager.getById(voxel);
 
-                    if (blockType == null || blockType.equals(BlockType.AIR) || blockType.isTransparent() != transparent) {
+                    if (block == null || block.equals(Block.AIR) || block.isTransparent() != transparent) {
                         continue;
                     }
 
-                    vertexOffset = blockType.render(vertices, vertexOffset, this, x, y, z, faceMask);
+                    vertexOffset = block.render(vertices, vertexOffset, this, x, y, z, faceMask);
                 }
             }
         }
@@ -287,7 +298,7 @@ public class Chunk implements Disposable {
             MESH_POOL.flush(mesh);
         }
 
-        if(meshTransparent != null) {
+        if (meshTransparent != null) {
             MESH_POOL.flush(meshTransparent);
         }
     }
@@ -296,16 +307,16 @@ public class Chunk implements Disposable {
         return Math.abs(getChunkPosition(offset).dst(chunkPosition)) <= RENDER_DISTANCE;
     }
 
-    public BlockType getBlock(int x, int y, int z) {
-        if(x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth){
-            return BlockType.getById(voxels[x + z * width + y * widthTimesHeight]);
+    public Block getBlock(int x, int y, int z) {
+        if (x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth) {
+            return BlockManager.getById(voxels[x + z * width + y * widthTimesHeight]);
         }
 
         return World.INSTANCE.get(offset.cpy().add(x, y, z));
     }
 
     public void render(Array<Renderable> renderables, Pool<Renderable> pool, boolean transparent) {
-        if(!generated){
+        if (!generated) {
             generateMesh();
         }
 
