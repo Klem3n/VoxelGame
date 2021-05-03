@@ -34,7 +34,9 @@ public class Entity {
     }
 
     public void update(float deltaTime) {
-        velocity.y -= GRAVITY * deltaTime;
+        if (!onGround) {
+            velocity.y -= GRAVITY * deltaTime;
+        }
 
         if (velocity.y < MAX_FALLING_SPEED) {
             velocity.y = MAX_FALLING_SPEED;
@@ -44,7 +46,12 @@ public class Entity {
 
         collisionDetection(velocity);
 
-        onGround = velocity.y == 0;
+        if (velocity.y == 0) {
+            onGround = true;
+            velocity.y = 0;
+        } else {
+            onGround = false;
+        }
 
         position.add(velocity);
     }

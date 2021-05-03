@@ -76,48 +76,41 @@ public class PlayerController extends InputAdapter {
     }
 
     @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        lookAround(screenX, screenY);
+        return false;
+    }
+
+    @Override
     public boolean mouseMoved(int screenX, int screenY) {
+        lookAround(screenX, screenY);
+        return false;
+    }
+
+    private void lookAround(int screenX, int screenY) {
         int magX = Math.abs(mouseX - screenX);
         int magY = Math.abs(mouseY - screenY);
 
         if (mouseX > screenX) {
-            camera.rotate(Vector3.Y, 1 * magX * ROTATION_SPEED);
-            camera.update();
+            camera.direction.rotate(Vector3.Y, 1 * magX * ROTATION_SPEED);
         }
 
         if (mouseX < screenX) {
-            camera.rotate(Vector3.Y, -1 * magX * ROTATION_SPEED);
-            camera.update();
+            camera.direction.rotate(Vector3.Y, -1 * magX * ROTATION_SPEED);
         }
 
         if (mouseY < screenY) {
-            if (camera.direction.y > -0.900) {
-                camera.rotate(camera.direction.cpy().crs(Vector3.Y), -1 * magY * ROTATION_SPEED);
-            }
-
-            if (camera.direction.y < -0.900) {
-                camera.direction.y = -0.800f;
-            }
-
-            camera.update();
+            camera.direction.rotate(camera.direction.cpy().crs(Vector3.Y), -1 * magY * ROTATION_SPEED);
         }
 
         if (mouseY > screenY) {
-            if (camera.direction.y < 0.900) {
-                camera.rotate(camera.direction.cpy().crs(Vector3.Y), 1 * magY * ROTATION_SPEED);
-            }
-
-            if (camera.direction.y > 0.900) {
-                camera.direction.y = 0.800f;
-            }
-
-            camera.update();
+            camera.direction.rotate(camera.direction.cpy().crs(Vector3.Y), 1 * magY * ROTATION_SPEED);
         }
+
+        camera.update();
 
         mouseX = screenX;
         mouseY = screenY;
-
-        return false;
     }
 
     @Override
