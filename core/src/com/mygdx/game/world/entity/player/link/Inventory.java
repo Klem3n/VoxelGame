@@ -12,7 +12,7 @@ public class Inventory {
 
     public Inventory() {
         for (int i = 0; i < hotbar.length; i++) {
-            hotbar[i] = new Item(i + 1, 1);
+            hotbar[i] = new Item(i + 4, 1);
         }
     }
 

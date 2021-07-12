@@ -21,6 +21,7 @@ import com.mygdx.game.VoxelGame;
 import com.mygdx.game.assets.AssetDescriptors;
 import com.mygdx.game.controller.PlayerController;
 import com.mygdx.game.ui.Hud;
+import com.mygdx.game.utils.Constants;
 import com.mygdx.game.world.World;
 import com.mygdx.game.world.entity.Entity;
 
@@ -59,7 +60,7 @@ public class GameScreen extends ScreenAdapter {
         camera.near = 0.0001f;
         camera.far = 100f;
 
-        playerController = new PlayerController(camera, new Vector3(0.2f, 1.0f, 0.2f));
+        playerController = new PlayerController(camera, new Vector3(0.3f, 100.0f, 0.3f));
         Gdx.input.setInputProcessor(playerController);
 
         entities.add(playerController.getPlayer());
@@ -76,7 +77,10 @@ public class GameScreen extends ScreenAdapter {
 
         TextureRegion[][] tiles = TextureRegion.split(texture, 32, 32);
 
-        world = new World(tiles, playerController, material);
+        Constants.MATERIAL = material;
+        Constants.TEXTURE_TILES = tiles;
+
+        world = new World(playerController);
 
         Gdx.input.setCursorCatched(true);
     }
@@ -94,6 +98,11 @@ public class GameScreen extends ScreenAdapter {
     public void render(float deltaTime) {
         update(deltaTime);
 
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+        Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
+        Gdx.gl.glDepthFunc(GL20.GL_LEQUAL);
+        Gdx.gl.glEnable(GL20.GL_CULL_FACE);
+
         Gdx.gl.glClearColor(0.4f, 0.4f, 0.4f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
@@ -104,20 +113,6 @@ public class GameScreen extends ScreenAdapter {
         spriteBatch.enableBlending();
         spriteBatch.setProjectionMatrix(hud.getStage().getCamera().combined);
         hud.getStage().draw();
-
-        /*spriteBatch.begin();
-
-        if (VoxelGame.DEBUG) {
-            font.draw(spriteBatch, "fps: " + Gdx.graphics.getFramesPerSecond() + " Rendered chunks: " + World.RENDERED_CHUNKS +
-                    "            Position: " + floor(camera.position.x) + ", " + floor(camera.position.y) + ", " + floor(camera.position.z), 0, 20);
-
-            font.draw(spriteBatch, "Memory usage: " + Gdx.app.getJavaHeap() / 1048576 + " MB", 0, 40);
-        }
-
-        crosshair.setPosition(Gdx.graphics.getWidth() / 2f - crosshair.getWidth() / 2, Gdx.graphics.getHeight() / 2f - crosshair.getHeight() / 2);
-        crosshair.draw(spriteBatch, 1f);
-
-        spriteBatch.end();*/
     }
 
     @Override

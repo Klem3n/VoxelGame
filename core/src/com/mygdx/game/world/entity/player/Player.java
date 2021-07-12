@@ -3,6 +3,7 @@ package com.mygdx.game.world.entity.player;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.block.Block;
+import com.mygdx.game.block.BlockID;
 import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.collision.ray.CollisionRay;
 import com.mygdx.game.world.World;
@@ -34,7 +35,7 @@ public class Player extends Entity {
     @Override
     public void update() {
         super.update();
-
+        
         selectedBlock = blockDetectionRay.trace();
     }
 
@@ -52,7 +53,11 @@ public class Player extends Entity {
          */
         if (selectedBlock != null && selectedBlock.getPosition() != null && selectedBlock.getRayHit().isHit()) {
             if (button == 0) {
-                getWorld().set(selectedBlock.getPosition(), Block.AIR);
+                Block block = getWorld().get(selectedBlock.getPosition());
+
+                if (block != null && block.getId() != BlockID.BEDROCK) {
+                    getWorld().set(selectedBlock.getPosition(), Block.AIR);
+                }
             } else if (button == 1) {
                 Vector3 placePosition = selectedBlock.getPosition().cpy().add(selectedBlock.getRayHit().getHitDirection());
 
@@ -72,6 +77,14 @@ public class Player extends Entity {
     @Override
     public Vector3 getPosition() {
         return position;
+    }
+
+    @Override
+    public void setPosition(Vector3 position) {
+        super.setPosition(position);
+
+        this.camera.position.set(position).add(0.3f, 1.0f, 0.3f);
+        this.camera.update();
     }
 
     public WorldBlock getSelectedBlock() {

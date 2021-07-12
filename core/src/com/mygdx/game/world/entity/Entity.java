@@ -75,4 +75,8 @@ public class Entity {
     public void setOnGround(boolean onGround) {
         this.onGround = onGround;
     }
+
+    public void setPosition(Vector3 position) {
+        this.position.set(position);
+    }
 }

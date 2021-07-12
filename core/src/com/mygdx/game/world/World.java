@@ -1,23 +1,19 @@
 package com.mygdx.game.world;
 
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.g3d.Material;
 import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.RenderableProvider;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Disposable;
-import com.badlogic.gdx.utils.Pool;
+import com.badlogic.gdx.utils.*;
 import com.mygdx.game.block.Block;
 import com.mygdx.game.block.renderer.SelectedBlockRenderer;
 import com.mygdx.game.controller.PlayerController;
 import com.mygdx.game.utils.ThreadUtil;
 import com.mygdx.game.world.entity.player.Player;
+import com.mygdx.game.world.generator.WorldGenerator;
+import com.mygdx.game.world.generator.impl.DefaultWorldGenerator;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,30 +21,22 @@ import static com.mygdx.game.utils.Constants.*;
 
 public class World implements RenderableProvider, Disposable {
     public static World INSTANCE;
+    private static final int WORLD_SEED = 1234;
+    public static int RENDERED_CHUNKS;
 
     /**
      * The ExecutorService.
      */
     private final ExecutorService chunkExecutor;
-
-    public final Map<Vector3, Chunk> chunks = new ConcurrentHashMap<>();
-    public static int RENDERED_CHUNKS;
-    public static TextureRegion[][] TEXTURE_TILES;
-
+    public final ArrayMap<Vector3, Chunk> chunks = new ArrayMap<>();
     private final PlayerController playerController;
-
     private Vector3 lastUpdatePosition = null;
+    private final WorldGenerator worldGenerator;
 
-    private boolean isRunning;
-
-    private final Material material;
-
-    public World(TextureRegion[][] tiles, PlayerController playerController, Material material) {
+    public World(PlayerController playerController) {
         INSTANCE = this;
-        TEXTURE_TILES = tiles;
         this.playerController = playerController;
-        this.material = material;
-        isRunning = true;
+        this.worldGenerator = new DefaultWorldGenerator(this);
 
         chunkExecutor = Executors.newFixedThreadPool(1, ThreadUtil.create("ClientSynchronizer"));
     }
@@ -116,11 +104,13 @@ public class World implements RenderableProvider, Disposable {
                         Vector3 position = getChunkPosition(playerController.getPosition()).add(x, y, z);
                         Vector3 offset = new Vector3(position.x * CHUNK_SIZE_X, position.y * CHUNK_SIZE_Y, position.z * CHUNK_SIZE_Z);
 
-                        if(chunks.containsKey(position) || Math.abs(getChunkPosition(playerController.getPosition()).dst(getChunkPosition(offset))) > RENDER_DISTANCE){
+                        if (chunks.containsKey(position) || Math.abs(getChunkPosition(playerController.getPosition()).dst(getChunkPosition(offset))) > RENDER_DISTANCE) {
                             continue;
                         }
 
                         Chunk chunk = new Chunk(position, position.x * CHUNK_SIZE_X, position.y * CHUNK_SIZE_Y, position.z * CHUNK_SIZE_Z);
+
+                        worldGenerator.generateChunk(chunk);
 
                         chunks.put(position, chunk);
                     }
@@ -139,12 +129,12 @@ public class World implements RenderableProvider, Disposable {
 
         List<Vector3> toRemove = new ArrayList<>();
 
-        for (Map.Entry<Vector3, Chunk> entry : chunks.entrySet()) {
-            Chunk chunk = entry.getValue();
+        for (ObjectMap.Entry<Vector3, Chunk> entry : chunks.entries()) {
+            Chunk chunk = entry.value;
 
             if (!chunk.isVisible(getChunkPosition(playerController.getPosition()))) {
                 chunk.dispose();
-                toRemove.add(entry.getKey());
+                toRemove.add(entry.key);
                 continue;
             }
 
@@ -159,36 +149,36 @@ public class World implements RenderableProvider, Disposable {
          */
         SelectedBlockRenderer.render(playerController.getPlayer().getSelectedBlock(), renderables, pool);
 
-        toRemove.forEach(chunks::remove);
+        synchronized (chunks) {
+            toRemove.forEach(chunks::removeKey);
+        }
 
-        for (Map.Entry<Vector3, Chunk> entry : chunks.entrySet()) {
-            Chunk chunk = entry.getValue();
+        for (Chunk chunk : chunks.values()) {
             chunk.render(renderables, pool, true);
         }
     }
 
     @Override
     public void dispose() {
-        isRunning = false;
         chunks.values().forEach(Chunk::dispose);
 
         Chunk.MESH_POOL.dispose();
         chunkExecutor.shutdown();
     }
 
-    public boolean isRunning() {
-        return isRunning;
-    }
-
     public ExecutorService getChunkExecutor() {
         return chunkExecutor;
     }
 
-    public Material getMaterial() {
-        return material;
-    }
-
     public Player getPlayer() {
         return playerController.getPlayer();
+    }
+
+    public WorldGenerator getWorldGenerator() {
+        return worldGenerator;
+    }
+
+    public int getWorldSeed() {
+        return WORLD_SEED;
     }
 }

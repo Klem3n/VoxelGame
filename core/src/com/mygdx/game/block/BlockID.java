@@ -11,4 +11,7 @@ public class BlockID {
     public static final int WATER = 7;
     public static final int ROSE = 8;
     public static final int DANDELION = 9;
+    public static final int BEDROCK = 10;
+    public static final int SAND = 11;
+    public static final int SNOW = 12;
 }

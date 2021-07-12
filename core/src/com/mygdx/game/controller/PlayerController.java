@@ -159,8 +159,8 @@ public class PlayerController extends InputAdapter {
 
             VoxelGame.DEBUG = !VoxelGame.DEBUG;
 
-            World.INSTANCE.chunks.forEach((key, c) -> {
-                c.setDirty(true);
+            World.INSTANCE.chunks.forEach((e) -> {
+                e.value.setDirty(true);
             });
         }
 

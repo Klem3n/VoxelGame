@@ -7,7 +7,7 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 import com.mygdx.game.assets.AssetDescriptors;
-import com.mygdx.game.world.World;
+import com.mygdx.game.utils.Constants;
 import com.mygdx.game.world.entity.player.link.Item;
 
 public class InventorySlotActor extends Image {
@@ -61,7 +61,7 @@ public class InventorySlotActor extends Image {
 
         if (item != null) {
             int topTexture = item.getBlock().getInventoryTexture();
-            TextureRegion[][] tiles = World.TEXTURE_TILES;
+            TextureRegion[][] tiles = Constants.TEXTURE_TILES;
 
             if (topTexture >= 0 && topTexture <= tiles.length * tiles[0].length) {
                 itemImage = new Image(tiles[topTexture / tiles.length][topTexture % tiles[0].length]);

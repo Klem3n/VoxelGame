@@ -11,22 +11,22 @@ public class DefaultBlockRenderer {
 
     public static int render(float[] vertices, int vertexOffset, Chunk chunk, int topTexture, int sideTexture, int bottomTexture, float alpha, int x, int y, int z, byte faceMask) {
         if ((faceMask & 0x1) != 0) {
-            vertexOffset = createTop(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(topTexture), alpha);
+            vertexOffset = createTop(chunk.position, x, y, z, vertices, vertexOffset, getBlockTexture(topTexture), alpha);
         }
         if ((faceMask & 0x2) != 0) {
-            vertexOffset = createBottom(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(bottomTexture), alpha);
+            vertexOffset = createBottom(chunk.position, x, y, z, vertices, vertexOffset, getBlockTexture(bottomTexture), alpha);
         }
         if ((faceMask & 0x4) != 0) {
-            vertexOffset = createLeft(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
+            vertexOffset = createLeft(chunk.position, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
         }
         if ((faceMask & 0x8) != 0) {
-            vertexOffset = createRight(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
+            vertexOffset = createRight(chunk.position, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
         }
         if ((faceMask & 0x10) != 0) {
-            vertexOffset = createFront(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
+            vertexOffset = createFront(chunk.position, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
         }
         if ((faceMask & 0x20) != 0) {
-            vertexOffset = createBack(chunk.offset, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
+            vertexOffset = createBack(chunk.position, x, y, z, vertices, vertexOffset, getBlockTexture(sideTexture), alpha);
         }
 
 

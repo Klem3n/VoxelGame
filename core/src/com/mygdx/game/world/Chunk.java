@@ -12,6 +12,7 @@ import com.badlogic.gdx.utils.Pool;
 import com.mygdx.game.block.Block;
 import com.mygdx.game.block.BlockManager;
 import com.mygdx.game.utils.ChunkMeshPool;
+import com.mygdx.game.utils.Constants;
 
 import static com.mygdx.game.utils.Constants.*;
 
@@ -23,7 +24,7 @@ public class Chunk implements Disposable {
     private final int width;
     private final int height;
     private final int depth;
-    public final Vector3 offset = new Vector3();
+    public final Vector3 position = new Vector3();
     private final Vector3 chunkPosition = new Vector3();
     private final int widthTimesHeight;
 
@@ -39,7 +40,7 @@ public class Chunk implements Disposable {
     private int vertAmount = 0;
     private int vertAmountTransparent = 0;
 
-    public static float[] VERTICES = new float[VERTEX_SIZE*6*CHUNK_SIZE_X*CHUNK_SIZE_Y*CHUNK_SIZE_Z];
+    public static final float[] VERTICES = new float[VERTEX_SIZE * 6 * CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z];
 
     private final int maxVertices, maxIndices;
 
@@ -57,11 +58,9 @@ public class Chunk implements Disposable {
         this.maxIndices = width * height
                 * depth * 36;
 
-        this.offset.set(x, y, z);
+        this.position.set(x, y, z);
         this.chunkPosition.set(chunkPosition);
-        generateHeightMap();
     }
-
 
     public void generateMesh(){
         generated = true;
@@ -91,10 +90,10 @@ public class Chunk implements Disposable {
     public void generateHeightMap(){
         for(int x = 0; x < width; x++){
             for(int z = 0; z < depth; z++){
-                int heightMap = (int) (fastNoiseLite.GetNoise(offset.x + x, offset.z + z) * 32);
+                int heightMap = (int) (fastNoiseLite.GetNoise(position.x + x, position.z + z) * 32);
 
                 for(int y = 0; y < height; y++){
-                    float actualHeight = offset.y + y;
+                    float actualHeight = position.y + y;
 
                     if(actualHeight > heightMap){
                         if(actualHeight <=0){
@@ -202,7 +201,7 @@ public class Chunk implements Disposable {
         dirty = true;
     }
 
-    private void setFast(int x, int y, int z, int id) {
+    public void setFast(int x, int y, int z, int id) {
         voxels[x + z * width + y * widthTimesHeight] = (byte) id;
         dirty = true;
     }
@@ -304,7 +303,7 @@ public class Chunk implements Disposable {
     }
 
     public boolean isVisible(Vector3 chunkPosition) {
-        return Math.abs(getChunkPosition(offset).dst(chunkPosition)) <= RENDER_DISTANCE;
+        return Math.abs(Constants.getChunkPosition(position).dst(chunkPosition)) <= RENDER_DISTANCE;
     }
 
     public Block getBlock(int x, int y, int z) {
@@ -312,7 +311,7 @@ public class Chunk implements Disposable {
             return BlockManager.getById(voxels[x + z * width + y * widthTimesHeight]);
         }
 
-        return World.INSTANCE.get(offset.cpy().add(x, y, z));
+        return World.INSTANCE.get(position.cpy().add(x, y, z));
     }
 
     public void render(Array<Renderable> renderables, Pool<Renderable> pool, boolean transparent) {
@@ -321,7 +320,8 @@ public class Chunk implements Disposable {
         }
 
         if (dirty) {
-            World.INSTANCE.getChunkExecutor().submit(this::generate);
+            generate();
+            //World.INSTANCE.getChunkExecutor().submit(this::generate);
             dirty = false;
         }
 
@@ -333,7 +333,7 @@ public class Chunk implements Disposable {
             }
 
             renderable = pool.obtain();
-            renderable.material = World.INSTANCE.getMaterial();
+            renderable.material = MATERIAL;
             renderable.meshPart.mesh = mesh;
             renderable.meshPart.offset = 0;
             renderable.meshPart.size = vertAmount;
@@ -348,7 +348,7 @@ public class Chunk implements Disposable {
         }
 
         renderable = pool.obtain();
-        renderable.material = World.INSTANCE.getMaterial();
+        renderable.material = MATERIAL;
         renderable.meshPart.mesh = meshTransparent;
         renderable.meshPart.offset = 0;
         renderable.meshPart.size = vertAmountTransparent;
@@ -356,8 +356,9 @@ public class Chunk implements Disposable {
         renderables.add(renderable);
     }
 
-    private void generate() {
+    private synchronized void generate() {
         update();
+
         int numVerts = calculateVertices(VERTICES, false);
         mesh.setVertices(VERTICES, 0, numVerts);
         this.vertAmount = numVerts / 4;
@@ -365,5 +366,13 @@ public class Chunk implements Disposable {
         numVerts = calculateVertices(VERTICES, true);
         meshTransparent.setVertices(VERTICES, 0, numVerts);
         this.vertAmountTransparent = numVerts / 4;
+    }
+
+    public Vector3 getPosition() {
+        return position;
+    }
+
+    public Vector3 getChunkPosition() {
+        return chunkPosition;
     }
 }

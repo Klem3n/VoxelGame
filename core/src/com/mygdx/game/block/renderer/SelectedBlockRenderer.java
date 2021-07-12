@@ -11,7 +11,9 @@ import com.badlogic.gdx.utils.Pool;
 import com.mygdx.game.block.Block;
 import com.mygdx.game.block.WorldBlock;
 import com.mygdx.game.collision.Bounds;
-import com.mygdx.game.world.World;
+import com.mygdx.game.utils.Constants;
+
+import static com.mygdx.game.utils.Constants.MATERIAL;
 
 public class SelectedBlockRenderer {
     private static float[] VERTICES = new float[4 * 12 * 6];
@@ -46,7 +48,7 @@ public class SelectedBlockRenderer {
 
         Vector3 position = new Vector3((float) Math.floor(selectedBlock.getPosition().x), (float) Math.floor(selectedBlock.getPosition().y), (float) Math.floor(selectedBlock.getPosition().z));
 
-        TextureRegion textureRegion = World.TEXTURE_TILES[15][10];
+        TextureRegion textureRegion = Constants.TEXTURE_TILES[15][10];
 
         for (Bounds bound : selectedBlock.getBlock().getBounds()) {
             vertexOffset = createTop(position, VERTICES, vertexOffset, textureRegion, bound);
@@ -61,7 +63,7 @@ public class SelectedBlockRenderer {
         mesh.setVertices(VERTICES, 0, vertexOffset);
 
         Renderable renderable = pool.obtain();
-        renderable.material = World.INSTANCE.getMaterial();
+        renderable.material = MATERIAL;
         renderable.meshPart.mesh = mesh;
         renderable.meshPart.offset = 0;
         renderable.meshPart.size = vertexOffset / 8;

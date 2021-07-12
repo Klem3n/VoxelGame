@@ -9,7 +9,7 @@ import static com.mygdx.game.utils.TextureUtils.getBlockTexture;
 public class FolliageBlockRenderer {
 
     public static int render(float[] verticies, int vertexOffset, Chunk chunk, int texture, float alpha, float size, int x, int y, int z, byte faceMask) {
-        return renderX(chunk.offset, x, y, z, verticies, vertexOffset, texture, alpha, size);
+        return renderX(chunk.position, x, y, z, verticies, vertexOffset, texture, alpha, size);
     }
 
     public static int renderX(Vector3 offset, float x, float y, float z, float[] vertices, int vertexOffset, int texture, float alpha, float size) {
