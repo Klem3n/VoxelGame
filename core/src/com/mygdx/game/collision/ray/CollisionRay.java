@@ -90,12 +90,12 @@ public class CollisionRay {
                 break;
             }
 
-            passed.add(world.get(voxel));
+            passed.add(world.get(voxel, false, false));
 
             RayHit hit;
 
-            if (world.get(voxel) != null && (hit = world.get(voxel).collides(voxel, this)).isHit()) {
-                return new WorldBlock(voxel, world.get(voxel), hit);
+            if (world.get(voxel, false, false) != null && (hit = world.get(voxel, false, false).collides(voxel, this)).isHit()) {
+                return new WorldBlock(voxel, world.get(voxel, false, false), hit);
             }
         }
 

@@ -3,7 +3,7 @@ package com.mygdx.game.block.impl;
 import com.mygdx.game.block.Block;
 import com.mygdx.game.block.BlockID;
 import com.mygdx.game.block.renderer.DefaultBlockRenderer;
-import com.mygdx.game.world.Chunk;
+import com.mygdx.game.world.chunk.Chunk;
 
 public class BlockCobblestone extends Block {
     public BlockCobblestone() {
@@ -14,7 +14,7 @@ public class BlockCobblestone extends Block {
 
     @Override
     public int render(float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z, byte faceMask) {
-        return DefaultBlockRenderer.render(verticies, vertexOffset, chunk, 1, 1, 1, getAlpha(), x, y, z, faceMask);
+        return DefaultBlockRenderer.render(verticies, vertexOffset, chunk, 1, 1, 1, getAlpha(), x, y, z, faceMask, false);
     }
 
     @Override

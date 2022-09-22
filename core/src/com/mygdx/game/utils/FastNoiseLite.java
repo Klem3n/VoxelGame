@@ -64,14 +64,14 @@ public class FastNoiseLite
         Perlin,
         ValueCubic,
         Value
-    };
+    }
 
     public enum RotationType3D
     {
         None,
         ImproveXYPlanes,
         ImproveXZPlanes
-    };
+    }
 
     public enum FractalType
     {
@@ -81,7 +81,7 @@ public class FastNoiseLite
         PingPong,
         DomainWarpProgressive,
         DomainWarpIndependent
-    };
+    }
 
     public enum CellularDistanceFunction
     {
@@ -89,7 +89,7 @@ public class FastNoiseLite
         EuclideanSq,
         Manhattan,
         Hybrid
-    };
+    }
 
     public enum CellularReturnType
     {
@@ -100,14 +100,14 @@ public class FastNoiseLite
         Distance2Sub,
         Distance2Mul,
         Distance2Div
-    };
+    }
 
     public enum DomainWarpType
     {
         OpenSimplex2,
         OpenSimplex2Reduced,
         BasicGrid
-    };
+    }
 
     private enum TransformType3D
     {
@@ -115,7 +115,7 @@ public class FastNoiseLite
         ImproveXYPlanes,
         ImproveXZPlanes,
         DefaultOpenSimplex2
-    };
+    }
 
     private int mSeed = 1337;
     private float mFrequency = 0.01f;
@@ -343,43 +343,65 @@ public class FastNoiseLite
     }
 
     /// <summary>
+    /// 2D noise at given position using current settings
+    /// </summary>
+    /// <returns>
+    /// Noise output bounded between 0...mod
+    /// </returns>
+    /*public int GetIntNoise(int mod, float x, float y) {
+        float f1 = GetNoise(x, 50, y);
+        float f2 = GetNoise(x, 100, y);
+        int i1 = Math.abs(Float.floatToIntBits(f1));
+        int i2 = Math.abs(Float.floatToIntBits(f2));
+        return (((i1 & 0x7fff) << 16) | (i2 & 0xffff)) % mod;
+    }*/
+
+    public int GetIntNoise(int mod, float x, float y) {
+        float noise = GetNoise(x, 50, y);
+
+        noise = ((noise + 1f) / 2f) * mod;
+
+        return (int) noise;
+    }
+
+    /// <summary>
     /// 3D noise at given position using current settings
     /// </summary>
     /// <returns>
     /// Noise output bounded between -1...1
     /// </returns>
-    public float GetNoise(/*FNLfloat*/ float x, /*FNLfloat*/ float y, /*FNLfloat*/ float z)
-    {
+    public float GetNoise(/*FNLfloat*/ float x, /*FNLfloat*/ float y, /*FNLfloat*/ float z) {
         x *= mFrequency;
         y *= mFrequency;
         z *= mFrequency;
 
-        switch (mTransformType3D)
-        {
-            case ImproveXYPlanes:
-            {
-                /*FNLfloat*/ float xy = x + y;
-                /*FNLfloat*/ float s2 = xy * -(/*FNLfloat*/ float)0.211324865405187;
-                z *= (/*FNLfloat*/ float)0.577350269189626;
+        switch (mTransformType3D) {
+            case ImproveXYPlanes: {
+                /*FNLfloat*/
+                float xy = x + y;
+                /*FNLfloat*/
+                float s2 = xy * -(/*FNLfloat*/ float) 0.211324865405187;
+                z *= (/*FNLfloat*/ float) 0.577350269189626;
                 x += s2 - z;
                 y = y + s2 - z;
-                z += xy * (/*FNLfloat*/ float)0.577350269189626;
+                z += xy * (/*FNLfloat*/ float) 0.577350269189626;
             }
             break;
-            case ImproveXZPlanes:
-            {
-                /*FNLfloat*/ float xz = x + z;
-                /*FNLfloat*/ float s2 = xz * -(/*FNLfloat*/ float)0.211324865405187;
-                y *= (/*FNLfloat*/ float)0.577350269189626;
+            case ImproveXZPlanes: {
+                /*FNLfloat*/
+                float xz = x + z;
+                /*FNLfloat*/
+                float s2 = xz * -(/*FNLfloat*/ float) 0.211324865405187;
+                y *= (/*FNLfloat*/ float) 0.577350269189626;
                 x += s2 - y;
                 z += s2 - y;
-                y += xz * (/*FNLfloat*/ float)0.577350269189626;
+                y += xz * (/*FNLfloat*/ float) 0.577350269189626;
             }
             break;
-            case DefaultOpenSimplex2:
-            {
-                final /*FNLfloat*/ float R3 = (/*FNLfloat*/ float)(2.0 / 3.0);
-                /*FNLfloat*/ float r = (x + y + z) * R3; // Rotation, not skew
+            case DefaultOpenSimplex2: {
+                final /*FNLfloat*/ float R3 = (/*FNLfloat*/ float) (2.0 / 3.0);
+                /*FNLfloat*/
+                float r = (x + y + z) * R3; // Rotation, not skew
                 x = r - x;
                 y = r - y;
                 z = r - z;
@@ -933,12 +955,12 @@ public class FastNoiseLite
 
         int i = FastFloor(x);
         int j = FastFloor(y);
-        float xi = (float)(x - i);
-        float yi = (float)(y - j);
+        float xi = (float) (x - i);
+        float yi = (float) (y - j);
 
         float t = (xi + yi) * G2;
-        float x0 = (float)(xi - t);
-        float y0 = (float)(yi - t);
+        float x0 = (float) (xi - t);
+        float y0 = (float) (yi - t);
 
         i *= PrimeX;
         j *= PrimeY;
@@ -946,40 +968,37 @@ public class FastNoiseLite
         float n0, n1, n2;
 
         float a = 0.5f - x0 * x0 - y0 * y0;
-        if (a <= 0) n0 = 0;
-        else
-        {
+        if (a <= 0) {
+            n0 = 0;
+        } else {
             n0 = (a * a) * (a * a) * GradCoord(seed, i, j, x0, y0);
         }
 
-        float c = (float)(2 * (1 - 2 * G2) * (1 / G2 - 2)) * t + ((float)(-2 * (1 - 2 * G2) * (1 - 2 * G2)) + a);
-        if (c <= 0) n2 = 0;
-        else
-        {
-            float x2 = x0 + (2 * (float)G2 - 1);
-            float y2 = y0 + (2 * (float)G2 - 1);
+        float c = (float) (2 * (1 - 2 * G2) * (1 / G2 - 2)) * t + ((float) (-2 * (1 - 2 * G2) * (1 - 2 * G2)) + a);
+        if (c <= 0) {
+            n2 = 0;
+        } else {
+            float x2 = x0 + (2 * (float) G2 - 1);
+            float y2 = y0 + (2 * (float) G2 - 1);
             n2 = (c * c) * (c * c) * GradCoord(seed, i + PrimeX, j + PrimeY, x2, y2);
         }
 
-        if (y0 > x0)
-        {
-            float x1 = x0 + (float)G2;
-            float y1 = y0 + ((float)G2 - 1);
+        if (y0 > x0) {
+            float x1 = x0 + (float) G2;
+            float y1 = y0 + ((float) G2 - 1);
             float b = 0.5f - x1 * x1 - y1 * y1;
-            if (b <= 0) n1 = 0;
-            else
-            {
+            if (b <= 0) {
+                n1 = 0;
+            } else {
                 n1 = (b * b) * (b * b) * GradCoord(seed, i, j + PrimeY, x1, y1);
             }
-        }
-        else
-        {
-            float x1 = x0 + ((float)G2 - 1);
-            float y1 = y0 + (float)G2;
+        } else {
+            float x1 = x0 + ((float) G2 - 1);
+            float y1 = y0 + (float) G2;
             float b = 0.5f - x1 * x1 - y1 * y1;
-            if (b <= 0) n1 = 0;
-            else
-            {
+            if (b <= 0) {
+                n1 = 0;
+            } else {
                 n1 = (b * b) * (b * b) * GradCoord(seed, i + PrimeX, j, x1, y1);
             }
         }
@@ -1027,35 +1046,29 @@ public class FastNoiseLite
                 value += (a * a) * (a * a) * GradCoord(seed, i, j, k, x0, y0, z0);
             }
 
-            if (ax0 >= ay0 && ax0 >= az0)
-            {
+            if (ax0 >= ay0 && ax0 >= az0) {
                 float b = a + ax0 + ax0;
-                if (b > 1)
-                {
+                if (b > 1) {
                     b -= 1;
                     value += (b * b) * (b * b) * GradCoord(seed, i - xNSign * PrimeX, j, k, x0 + xNSign, y0, z0);
                 }
-            }
-            else if (ay0 > ax0 && ay0 >= az0)
-            {
+            } else if (ay0 > ax0 && ay0 >= az0) {
                 float b = a + ay0 + ay0;
-                if (b > 1)
-                {
+                if (b > 1) {
                     b -= 1;
                     value += (b * b) * (b * b) * GradCoord(seed, i, j - yNSign * PrimeY, k, x0, y0 + yNSign, z0);
                 }
-            }
-            else
-            {
+            } else {
                 float b = a + az0 + az0;
-                if (b > 1)
-                {
+                if (b > 1) {
                     b -= 1;
                     value += (b * b) * (b * b) * GradCoord(seed, i, j, k - zNSign * PrimeZ, x0, y0, z0 + zNSign);
                 }
             }
 
-            if (l == 1) break;
+            if (l == 1) {
+                break;
+            }
 
             ax0 = 0.5f - ax0;
             ay0 = 0.5f - ay0;
@@ -2557,7 +2570,9 @@ public class FastNoiseLite
                 vz += bbbb * zo;
             }
 
-            if (l == 1) break;
+            if (l == 1) {
+                break;
+            }
 
             ax0 = 0.5f - ax0;
             ay0 = 0.5f - ay0;

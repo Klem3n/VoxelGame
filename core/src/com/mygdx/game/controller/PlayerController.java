@@ -6,8 +6,8 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntIntMap;
-import com.mygdx.game.VoxelGame;
 import com.mygdx.game.world.World;
+import com.mygdx.game.world.chunk.Chunk;
 import com.mygdx.game.world.entity.player.Player;
 
 public class PlayerController extends InputAdapter {
@@ -61,6 +61,13 @@ public class PlayerController extends InputAdapter {
             } else {
                 player.getInventory().setSelectedIndex(9);
             }
+        }
+
+        if (keycode == Keys.X) {
+            Chunk.MESH_POOL.clear();
+            World.INSTANCE.getChunks().forEach(e -> {
+                e.value.rerender();
+            });
         }
 
         return true;
@@ -153,15 +160,6 @@ public class PlayerController extends InputAdapter {
             keys.remove(ESCAPE, 0);
 
             Gdx.input.setCursorCatched(!Gdx.input.isCursorCatched());
-        }
-        if (keys.containsKey(Keys.F5)) {
-            keys.remove(Keys.F5, 0);
-
-            VoxelGame.DEBUG = !VoxelGame.DEBUG;
-
-            World.INSTANCE.chunks.forEach((e) -> {
-                e.value.setDirty(true);
-            });
         }
 
         transform.y = 0;

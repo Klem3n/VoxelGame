@@ -6,7 +6,7 @@ import com.mygdx.game.collision.Bounds;
 import com.mygdx.game.collision.ray.CollisionRay;
 import com.mygdx.game.collision.ray.RayHit;
 import com.mygdx.game.utils.RaycastUtils;
-import com.mygdx.game.world.Chunk;
+import com.mygdx.game.world.chunk.Chunk;
 import com.mygdx.game.world.entity.Entity;
 
 public abstract class Block {
@@ -116,6 +116,10 @@ public abstract class Block {
     public boolean isTransparent() {
         return alpha != 1;
     }
-    
+
     public abstract int getInventoryTexture();
+
+    public boolean renderBehind() {
+        return false;
+    }
 }

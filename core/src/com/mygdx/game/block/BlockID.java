@@ -14,4 +14,14 @@ public class BlockID {
     public static final int BEDROCK = 10;
     public static final int SAND = 11;
     public static final int SNOW = 12;
+    public static final int ICE = 13;
+    public static final int CLAY = 14;
+    public static final int BIRCH_WOOD = 15;
+    public static final int SPRUCE_WOOD = 16;
+    public static final int SPRUCE_LEAVES = 17;
+    public static final int TALL_GRASS = 18;
+    public static final int JUNGLE_WOOD = 19;
+    public static final int JUNGLE_LEAVES = 20;
+    public static final int CACTUS = 21;
+    public static final int BUSH = 22;
 }

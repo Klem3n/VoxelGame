@@ -44,7 +44,7 @@ public class EntityBounds extends Bounds {
                 for (int z = 0; z <= Constants.ceil(getDepth()); z++) {
                     Vector3 blockPosition = Constants.floor(new Vector3(x + position.x + dx, y + position.y + dy, z + position.z + dz));
 
-                    Block type = world.get(blockPosition);
+                    Block type = world.get(blockPosition, true, true);
 
                     if (type != null && type.collides(entity, position.cpy().add(dx, dy, dz), blockPosition)) {
                         return true;

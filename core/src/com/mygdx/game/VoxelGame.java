@@ -4,9 +4,12 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.mygdx.game.assets.AssetDescriptors;
+import com.mygdx.game.block.BlockManager;
 import com.mygdx.game.ui.ScreenType;
 import com.mygdx.game.ui.screen.GameScreen;
 import com.mygdx.game.ui.screen.LoadScreen;
+import com.mygdx.game.world.biome.BiomeManager;
+import com.mygdx.game.world.tree.TreeManager;
 
 public class VoxelGame extends Game {
 	private final AssetManager assets = new AssetManager();
@@ -16,6 +19,10 @@ public class VoxelGame extends Game {
 
 	@Override
 	public void create() {
+		BlockManager.init();
+		BiomeManager.init();
+		TreeManager.init();
+
 		assets.load(AssetDescriptors.TILES);
 		assets.load(AssetDescriptors.CROSSHAIR);
 		assets.load(AssetDescriptors.HOTBAR);

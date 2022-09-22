@@ -31,21 +31,28 @@ public class ChunkMeshPool implements ModelCache.MeshPool {
         usedMeshes.clear();
     }
 
-    public void flush(Mesh mesh){
+    public void flush(Mesh mesh) {
         usedMeshes.removeValue(mesh, true);
 
-        if(!freeMeshes.contains(mesh, true)){
+        if (!freeMeshes.contains(mesh, true)) {
             freeMeshes.add(mesh);
         }
     }
 
+    public void clear() {
+        freeMeshes.clear();
+        usedMeshes.clear();
+    }
+
     @Override
     public void dispose() {
-        for (Mesh m : usedMeshes)
+        for (Mesh m : usedMeshes) {
             m.dispose();
+        }
         usedMeshes.clear();
-        for (Mesh m : freeMeshes)
+        for (Mesh m : freeMeshes) {
             m.dispose();
+        }
         freeMeshes.clear();
     }
 }

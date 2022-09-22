@@ -4,7 +4,7 @@ import com.mygdx.game.block.Block;
 import com.mygdx.game.block.BlockID;
 import com.mygdx.game.block.renderer.FolliageBlockRenderer;
 import com.mygdx.game.collision.Bounds;
-import com.mygdx.game.world.Chunk;
+import com.mygdx.game.world.chunk.Chunk;
 
 public class BlockRose extends Block {
     public BlockRose() {
@@ -26,5 +26,10 @@ public class BlockRose extends Block {
     @Override
     public int getInventoryTexture() {
         return 12;
+    }
+
+    @Override
+    public boolean renderBehind() {
+        return true;
     }
 }

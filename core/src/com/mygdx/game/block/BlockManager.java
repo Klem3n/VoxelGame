@@ -25,7 +25,7 @@ public class BlockManager {
         blockMap.put(block.getId(), block);
     }
 
-    static {
+    public static void init() {
         try {
             ClassPath classPath = ClassPath.from(BlockManager.class.getClassLoader());
 

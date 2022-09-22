@@ -1,4 +1,4 @@
-package com.mygdx.game.world;
+package com.mygdx.game.world.chunk;
 
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
@@ -13,19 +13,20 @@ import com.mygdx.game.block.Block;
 import com.mygdx.game.block.BlockManager;
 import com.mygdx.game.utils.ChunkMeshPool;
 import com.mygdx.game.utils.Constants;
+import com.mygdx.game.world.World;
 
 import static com.mygdx.game.utils.Constants.*;
 
 public class Chunk implements Disposable {
     public static final ChunkMeshPool MESH_POOL = new ChunkMeshPool();
 
-    private final byte[] voxels;
+    private boolean active;
+
     private final byte[] faceMasks;
     private final int width;
     private final int height;
     private final int depth;
     public final Vector3 position = new Vector3();
-    private final Vector3 chunkPosition = new Vector3();
     private final int widthTimesHeight;
 
     private Mesh mesh;
@@ -33,6 +34,8 @@ public class Chunk implements Disposable {
     private boolean dirty;
 
     private boolean generated;
+
+    private final ChunkData chunkData;
 
     /**
      * Amount of vertices generated for this chunk
@@ -49,7 +52,8 @@ public class Chunk implements Disposable {
         this.height = CHUNK_SIZE_Y;
         this.depth = CHUNK_SIZE_Z;
 
-        this.voxels = new byte[width * height * depth];
+        chunkData = ChunkData.loadChunkData(this, chunkPosition);
+
         this.faceMasks = new byte[width * height * depth];
 
         this.widthTimesHeight = width * height;
@@ -59,7 +63,6 @@ public class Chunk implements Disposable {
                 * depth * 36;
 
         this.position.set(x, y, z);
-        this.chunkPosition.set(chunkPosition);
     }
 
     public void generateMesh(){
@@ -87,36 +90,6 @@ public class Chunk implements Disposable {
         this.meshTransparent.setIndices(indices);
     }
 
-    public void generateHeightMap(){
-        for(int x = 0; x < width; x++){
-            for(int z = 0; z < depth; z++){
-                int heightMap = (int) (fastNoiseLite.GetNoise(position.x + x, position.z + z) * 32);
-
-                for(int y = 0; y < height; y++){
-                    float actualHeight = position.y + y;
-
-                    if(actualHeight > heightMap){
-                        if(actualHeight <=0){
-                            setFast(x, y, z, 7);
-                        }
-                    } else {
-                        if(heightMap - actualHeight == 0){
-                            setFast(x, y, z, 1);
-                        } else if(heightMap - actualHeight < 6){
-                            setFast(x, y, z, 2);
-                        } else {
-                            setFast(x, y, z, 3);
-                        }
-                    }
-                }
-            }
-        }
-
-        this.dirty = true;
-
-        updateNeighborChunks();
-    }
-
     public Block get(int x, int y, int z) {
         if (x < 0 || x >= width) {
             return Block.AIR;
@@ -131,10 +104,10 @@ public class Chunk implements Disposable {
     }
 
     public Block getFast(int x, int y, int z) {
-        return BlockManager.getById(voxels[x + z * width + y * widthTimesHeight]);
+        return BlockManager.getById(chunkData.getVoxels()[x + z * width + y * widthTimesHeight]);
     }
 
-    public void set(int x, int y, int z, Block block) {
+    public void set(int x, int y, int z, int block) {
         if (x < 0 || x >= width) {
             return;
         }
@@ -144,7 +117,9 @@ public class Chunk implements Disposable {
         if (z < 0 || z >= depth) {
             return;
         }
+
         setFast(x, y, z, block);
+        modifyBlock(x, y, z, block);
 
         float xDiff = 0;
         float yDiff = 0;
@@ -162,47 +137,35 @@ public class Chunk implements Disposable {
             yDiff++;
         }
 
-        if(z == 0){
+        if (z == 0) {
             zDiff--;
-        } else if(z == depth-1){
+        } else if (z == depth - 1) {
             zDiff++;
         }
 
-        if(xDiff == 0 && yDiff == 0 && zDiff == 0){
+        if (xDiff == 0 && yDiff == 0 && zDiff == 0) {
             return;
         }
 
-        Array<Vector3> neighbors = new Array<>();
+        updateNeighborChunks();
+    }
 
-        neighbors.add(new Vector3(xDiff, yDiff, zDiff));
-        neighbors.add(new Vector3(xDiff, yDiff, 0));
-        neighbors.add(new Vector3(xDiff, 0, zDiff));
-        neighbors.add(new Vector3(xDiff, 0, 0));
-        neighbors.add(new Vector3(0, yDiff, zDiff));
-        neighbors.add(new Vector3(0, yDiff, 0));
-        neighbors.add(new Vector3(0, 0, zDiff));
-
-        neighbors.forEach(pos -> {
-            Chunk neighbor = World.INSTANCE.chunks.get(pos.add(chunkPosition));
-
-            if (neighbor != null) {
-                neighbor.dirty = true;
-            }
-        });
+    private void modifyBlock(int x, int y, int z, int block) {
+        chunkData.getChangedVoxels();
     }
 
     public void setFast(int x, int y, int z, Block block) {
-        voxels[x + z * width + y * widthTimesHeight] = (byte) block.getId();
+        chunkData.getVoxels()[x + z * width + y * widthTimesHeight] = (byte) block.getId();
         dirty = true;
     }
 
     public void setFast(int x, int y, int z, byte id) {
-        voxels[x + z * width + y * widthTimesHeight] = id;
+        chunkData.getVoxels()[x + z * width + y * widthTimesHeight] = id;
         dirty = true;
     }
 
     public void setFast(int x, int y, int z, int id) {
-        voxels[x + z * width + y * widthTimesHeight] = (byte) id;
+        chunkData.getVoxels()[x + z * width + y * widthTimesHeight] = (byte) id;
         dirty = true;
     }
 
@@ -220,7 +183,7 @@ public class Chunk implements Disposable {
         neighbors.add(new Vector3(0, 0, -1));
 
         neighbors.forEach(pos -> {
-            Chunk neighbor = World.INSTANCE.chunks.get(pos.add(chunkPosition));
+            Chunk neighbor = World.INSTANCE.getChunk(pos.add(chunkData.getChunkPosition()), false, false);
 
             if (neighbor != null) {
                 neighbor.dirty = true;
@@ -236,7 +199,7 @@ public class Chunk implements Disposable {
         for (int y = 0; y < height; y++) {
             for (int z = 0; z < depth; z++) {
                 for (int x = 0; x < width; x++, i++) {
-                    byte voxel = voxels[i];
+                    byte voxel = chunkData.getVoxels()[i];
 
                     Block block = BlockManager.getById(voxel);
 
@@ -258,7 +221,7 @@ public class Chunk implements Disposable {
         for (int y = 0; y < height; y++) {
             for (int z = 0; z < depth; z++) {
                 for (int x = 0; x < width; x++, i++) {
-                    byte voxel = voxels[i];
+                    byte voxel = chunkData.getVoxels()[i];
                     byte faceMask = faceMasks[i];
 
                     Block block = BlockManager.getById(voxel);
@@ -293,13 +256,15 @@ public class Chunk implements Disposable {
 
     @Override
     public void dispose() {
-        if(mesh != null) {
+        if (mesh != null) {
             MESH_POOL.flush(mesh);
         }
 
         if (meshTransparent != null) {
             MESH_POOL.flush(meshTransparent);
         }
+
+        generated = false;
     }
 
     public boolean isVisible(Vector3 chunkPosition) {
@@ -308,10 +273,16 @@ public class Chunk implements Disposable {
 
     public Block getBlock(int x, int y, int z) {
         if (x >= 0 && x < width && y >= 0 && y < height && z >= 0 && z < depth) {
-            return BlockManager.getById(voxels[x + z * width + y * widthTimesHeight]);
+            return BlockManager.getById(chunkData.getVoxels()[x + z * width + y * widthTimesHeight]);
         }
 
-        return World.INSTANCE.get(position.cpy().add(x, y, z));
+        return World.INSTANCE.get(position.cpy().add(x, y, z), false, false);
+    }
+
+    public void rerender() {
+        generated = false;
+        dirty = true;
+        setLoaded(false);
     }
 
     public void render(Array<Renderable> renderables, Pool<Renderable> pool, boolean transparent) {
@@ -321,13 +292,12 @@ public class Chunk implements Disposable {
 
         if (dirty) {
             generate();
-            //World.INSTANCE.getChunkExecutor().submit(this::generate);
-            dirty = false;
+            return;
         }
 
         Renderable renderable;
 
-        if(!transparent) {
+        if (!transparent) {
             if (vertAmount <= 0) {
                 return;
             }
@@ -357,6 +327,10 @@ public class Chunk implements Disposable {
     }
 
     private synchronized void generate() {
+        if (!isLoaded()) {
+            return;
+        }
+
         update();
 
         int numVerts = calculateVertices(VERTICES, false);
@@ -366,6 +340,16 @@ public class Chunk implements Disposable {
         numVerts = calculateVertices(VERTICES, true);
         meshTransparent.setVertices(VERTICES, 0, numVerts);
         this.vertAmountTransparent = numVerts / 4;
+
+        dirty = false;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public Vector3 getPosition() {
@@ -373,6 +357,65 @@ public class Chunk implements Disposable {
     }
 
     public Vector3 getChunkPosition() {
-        return chunkPosition;
+        return chunkData.getChunkPosition();
+    }
+
+    public void setBiome(int x, int z, int biome) {
+        this.chunkData.getBiomes()[x + z * depth] = biome;
+    }
+
+    public int getBiome(int x, int z) {
+        return this.chunkData.getBiomes()[x + z * depth];
+    }
+
+    public void setHeight(int x, int z, float height) {
+        this.chunkData.getHeights()[x + z * depth] = height;
+    }
+
+    public float getHeight(int x, int z) {
+        return this.chunkData.getHeights()[x + z * depth];
+    }
+
+    public void setTemp(int x, int z, float temp) {
+        this.chunkData.getTemp()[x + z * depth] = temp;
+    }
+
+    public float getTemp(int x, int z) {
+        return this.chunkData.getTemp()[x + z * depth];
+    }
+
+    public void setHumidity(int x, int z, float humidity) {
+        this.chunkData.getHumidity()[x + z * depth] = humidity;
+    }
+
+    public float getHumidity(int x, int z) {
+        return this.chunkData.getHumidity()[x + z * depth];
+    }
+
+    public boolean isLoaded() {
+        return chunkData.isLoaded();
+    }
+
+    public void setLoaded(boolean loaded) {
+        this.chunkData.setLoaded(loaded);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Chunk chunk = (Chunk) o;
+
+        return chunk.getChunkPosition().hashCode() == this.getChunkPosition().hashCode();
+    }
+
+    @Override
+    public int hashCode() {
+        return getChunkPosition().hashCode();
     }
 }

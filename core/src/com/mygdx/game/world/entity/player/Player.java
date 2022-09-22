@@ -53,20 +53,20 @@ public class Player extends Entity {
          */
         if (selectedBlock != null && selectedBlock.getPosition() != null && selectedBlock.getRayHit().isHit()) {
             if (button == 0) {
-                Block block = getWorld().get(selectedBlock.getPosition());
+                Block block = getWorld().get(selectedBlock.getPosition(), false, false);
 
                 if (block != null && block.getId() != BlockID.BEDROCK) {
-                    getWorld().set(selectedBlock.getPosition(), Block.AIR);
+                    getWorld().set(selectedBlock.getPosition(), Block.AIR, false, false);
                 }
             } else if (button == 1) {
                 Vector3 placePosition = selectedBlock.getPosition().cpy().add(selectedBlock.getRayHit().getHitDirection());
 
-                Block type = getWorld().get(placePosition);
+                Block type = getWorld().get(placePosition, false, false);
 
                 Block toPlace = getInventory().getSelectedBlock();
 
                 if ((type == null || !type.isSolid()) && toPlace != Block.AIR) {
-                    getWorld().set(placePosition, toPlace);
+                    getWorld().set(placePosition, toPlace, false, false);
                 }
             }
         }

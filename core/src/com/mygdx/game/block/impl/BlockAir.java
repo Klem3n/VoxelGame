@@ -5,7 +5,7 @@ import com.mygdx.game.block.Block;
 import com.mygdx.game.block.BlockID;
 import com.mygdx.game.collision.ray.CollisionRay;
 import com.mygdx.game.collision.ray.RayHit;
-import com.mygdx.game.world.Chunk;
+import com.mygdx.game.world.chunk.Chunk;
 import com.mygdx.game.world.entity.Entity;
 
 public class BlockAir extends Block {

@@ -23,7 +23,11 @@ import com.mygdx.game.controller.PlayerController;
 import com.mygdx.game.ui.Hud;
 import com.mygdx.game.utils.Constants;
 import com.mygdx.game.world.World;
+import com.mygdx.game.world.biome.BiomeManager;
+import com.mygdx.game.world.chunk.Chunk;
 import com.mygdx.game.world.entity.Entity;
+
+import static com.mygdx.game.utils.Constants.*;
 
 public class GameScreen extends ScreenAdapter {
     private final VoxelGame game;
@@ -57,10 +61,9 @@ public class GameScreen extends ScreenAdapter {
         modelBatch = new ModelBatch();
         DefaultShader.defaultCullFace = GL20.GL_FRONT;
         camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.near = 0.0001f;
-        camera.far = 100f;
+        camera.near = 0.1f;
 
-        playerController = new PlayerController(camera, new Vector3(0.3f, 100.0f, 0.3f));
+        playerController = new PlayerController(camera, new Vector3(.3f, 100.0f, .3f));
         Gdx.input.setInputProcessor(playerController);
 
         entities.add(playerController.getPlayer());
@@ -98,10 +101,11 @@ public class GameScreen extends ScreenAdapter {
     public void render(float deltaTime) {
         update(deltaTime);
 
-        Gdx.gl.glDisable(GL20.GL_BLEND);
+        //Gdx.gl.glDisable(GL20.GL_BLEND);
         Gdx.gl.glEnable(GL20.GL_DEPTH_TEST);
         Gdx.gl.glDepthFunc(GL20.GL_LEQUAL);
         Gdx.gl.glEnable(GL20.GL_CULL_FACE);
+        Gdx.gl.glCullFace(GL20.GL_FRONT_AND_BACK);
 
         Gdx.gl.glClearColor(0.4f, 0.4f, 0.4f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
@@ -113,6 +117,27 @@ public class GameScreen extends ScreenAdapter {
         spriteBatch.enableBlending();
         spriteBatch.setProjectionMatrix(hud.getStage().getCamera().combined);
         hud.getStage().draw();
+
+        spriteBatch.begin();
+
+        if (World.INSTANCE != null && World.INSTANCE.getPlayer() != null) {
+            Chunk chunk = World.INSTANCE.getChunk(getChunkPosition(World.INSTANCE.getPlayer().getPosition()), false, false);
+
+            if (chunk != null) {
+                int x = Math.floorMod((int) World.INSTANCE.getPlayer().getPosition().x, CHUNK_SIZE_X);
+                int z = Math.floorMod((int) World.INSTANCE.getPlayer().getPosition().z, CHUNK_SIZE_Z);
+
+                int biome = chunk.getBiome(x, z);
+                float temp = chunk.getTemp(x, z);
+                float hum = chunk.getHumidity(x, z);
+
+                font.draw(spriteBatch, "Biome: " + BiomeManager.getById(biome).getName(), 10, 400);
+                font.draw(spriteBatch, "Temp: " + temp, 10, 385);
+                font.draw(spriteBatch, "Hum: " + hum, 10, 370);
+            }
+        }
+
+        spriteBatch.end();
     }
 
     @Override

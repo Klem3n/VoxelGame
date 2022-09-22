@@ -2,7 +2,7 @@ package com.mygdx.game.block.renderer;
 
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
-import com.mygdx.game.world.Chunk;
+import com.mygdx.game.world.chunk.Chunk;
 
 import static com.mygdx.game.utils.TextureUtils.getBlockTexture;
 
