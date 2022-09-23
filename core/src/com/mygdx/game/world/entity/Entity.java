@@ -3,6 +3,7 @@ package com.mygdx.game.world.entity;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.collision.EntityBounds;
+import com.mygdx.game.world.World;
 
 public class Entity {
     private static final float GRAVITY = 9.8f;

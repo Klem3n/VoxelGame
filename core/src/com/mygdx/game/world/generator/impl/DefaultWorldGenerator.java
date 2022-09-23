@@ -127,6 +127,8 @@ public class DefaultWorldGenerator extends WorldGenerator {
         biomeFeatures(chunk);
 
         chunk.updateNeighborChunks();
+
+        chunk.placeModifiedBlocks();
     }
 
     private void generateBiomes(Chunk chunk) {

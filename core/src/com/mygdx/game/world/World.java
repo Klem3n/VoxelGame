@@ -22,7 +22,6 @@ import static com.mygdx.game.utils.Constants.*;
 
 public class World implements RenderableProvider, Disposable {
     public static World INSTANCE;
-    private static final int WORLD_SEED = 1234;
     public static int RENDERED_CHUNKS;
 
     /**
@@ -36,12 +35,14 @@ public class World implements RenderableProvider, Disposable {
     private final PlayerController playerController;
     private Vector3 lastUpdatePosition = null;
     private final WorldGenerator worldGenerator;
+    private final int seed;
+    private boolean loaded = false;
 
-
-    public World(PlayerController playerController) {
+    public World(PlayerController playerController, int seed) {
         INSTANCE = this;
         this.playerController = playerController;
         this.worldGenerator = new DefaultWorldGenerator(this);
+        this.seed = seed;
 
         chunkExecutor = Executors.newFixedThreadPool(1, ThreadUtil.create("ClientSynchronizer"));
     }
@@ -218,6 +219,8 @@ public class World implements RenderableProvider, Disposable {
             for (Chunk chunk : chunks.values()) {
                 chunk.render(renderables, pool, true);
             }
+
+            checkWorldLoad();
         }
     }
 
@@ -244,11 +247,28 @@ public class World implements RenderableProvider, Disposable {
     }
 
     public int getWorldSeed() {
-        return WORLD_SEED;
+        return this.seed;
     }
 
     public ArrayMap<Vector3, Chunk> getChunks() {
         return chunks;
     }
 
+    public boolean loaded() {
+        return loaded;
+    }
+
+    public void checkWorldLoad(){
+        if(loaded){
+            return;
+        }
+
+        for (ObjectMap.Entry<Vector3, Chunk> chunk : chunks) {
+            if(chunk.value.isDirty()){
+                return;
+            }
+        }
+
+        loaded = true;
+    }
 }

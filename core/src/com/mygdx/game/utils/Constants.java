@@ -9,7 +9,7 @@ public class Constants {
 
     public static final float GOLDEN_RATIO = 1.61803398875f;
 
-    public static final int RENDER_DISTANCE = 2;
+    public static final int RENDER_DISTANCE = 6;
 
     public static final int BIT_CHUNK_SIZE = 4;
 

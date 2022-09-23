@@ -5,8 +5,10 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
 import com.mygdx.game.utils.Constants;
 
+import static com.mygdx.game.utils.Constants.*;
+
 public class ChunkData {
-    private static final ArrayMap<Vector3, ChunkData> CHUNK_CACHE = new ArrayMap<>();
+    public static final ArrayMap<Vector3, ChunkData> CHUNK_CACHE = new ArrayMap<>();
 
     private final Vector3 chunkPosition;
     private final byte[] voxels;
@@ -14,7 +16,8 @@ public class ChunkData {
     private final float[] heights;
     private final float[] temp;
     private final float[] humidity;
-    private final Array<Integer> changedVoxels;
+    private final Array<Integer> changedVoxelIndexes;
+    private final Array<Byte> changedVoxels;
 
     private boolean loaded = false;
 
@@ -25,9 +28,14 @@ public class ChunkData {
         this.heights = heights;
         this.temp = temp;
         this.humidity = humidity;
+        this.changedVoxelIndexes = new Array<>();
         this.changedVoxels = new Array<>();
 
         CHUNK_CACHE.put(chunkPosition, this);
+    }
+
+    public ChunkData(Vector3 chunkPosition) {
+        this(chunkPosition, new byte[CHUNK_SIZE_X * CHUNK_SIZE_Y * CHUNK_SIZE_Z], new int[CHUNK_SIZE_X * CHUNK_SIZE_Z], new float[CHUNK_SIZE_X * CHUNK_SIZE_Z], new float[CHUNK_SIZE_X * CHUNK_SIZE_Z], new float[CHUNK_SIZE_X * CHUNK_SIZE_Z]);
     }
 
     public Vector3 getChunkPosition() {
@@ -62,7 +70,11 @@ public class ChunkData {
         this.loaded = loaded;
     }
 
-    public Array<Integer> getChangedVoxels() {
+    public Array<Integer> getChangedVoxelIndexes() {
+        return changedVoxelIndexes;
+    }
+
+    public Array<Byte> getChangedVoxels() {
         return changedVoxels;
     }
 
@@ -71,11 +83,7 @@ public class ChunkData {
             chunk.setDirty(true);
             return CHUNK_CACHE.get(chunkPosition);
         } else {
-            final int width = Constants.CHUNK_SIZE_X;
-            final int height = Constants.CHUNK_SIZE_Y;
-            final int depth = Constants.CHUNK_SIZE_Z;
-
-            return new ChunkData(chunkPosition, new byte[width * height * depth], new int[width * depth], new float[width * depth], new float[width * depth], new float[width * depth]);
+            return new ChunkData(chunkPosition);
         }
     }
 }

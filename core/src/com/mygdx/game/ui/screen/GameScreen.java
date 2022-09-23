@@ -22,6 +22,7 @@ import com.mygdx.game.assets.AssetDescriptors;
 import com.mygdx.game.controller.PlayerController;
 import com.mygdx.game.ui.Hud;
 import com.mygdx.game.utils.Constants;
+import com.mygdx.game.utils.SaveUtils;
 import com.mygdx.game.world.World;
 import com.mygdx.game.world.biome.BiomeManager;
 import com.mygdx.game.world.chunk.Chunk;
@@ -63,7 +64,15 @@ public class GameScreen extends ScreenAdapter {
         camera = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         camera.near = 0.1f;
 
-        playerController = new PlayerController(camera, new Vector3(.3f, 100.0f, .3f));
+        int worldSeed = 1234;
+        Vector3 playerPosition = new Vector3(.3f, 80.0f, .3f);
+
+        if(SaveUtils.PLAYER_POSITION != null){
+            worldSeed = SaveUtils.WORLD_SEED;
+            playerPosition.set(SaveUtils.PLAYER_POSITION);
+        }
+
+        playerController = new PlayerController(camera, playerPosition);
         Gdx.input.setInputProcessor(playerController);
 
         entities.add(playerController.getPlayer());
@@ -83,12 +92,16 @@ public class GameScreen extends ScreenAdapter {
         Constants.MATERIAL = material;
         Constants.TEXTURE_TILES = tiles;
 
-        world = new World(playerController);
+        world = new World(playerController, worldSeed);
 
         Gdx.input.setCursorCatched(true);
     }
 
     private void update(float deltaTime) {
+        if(!World.INSTANCE.loaded()) {
+            return;
+        }
+
         playerController.update();
 
         //Update all entities after player controller
@@ -134,6 +147,8 @@ public class GameScreen extends ScreenAdapter {
                 font.draw(spriteBatch, "Biome: " + BiomeManager.getById(biome).getName(), 10, 400);
                 font.draw(spriteBatch, "Temp: " + temp, 10, 385);
                 font.draw(spriteBatch, "Hum: " + hum, 10, 370);
+
+                font.draw(spriteBatch, "Position: " + playerController.getPosition(), 10, 415);
             }
         }
 

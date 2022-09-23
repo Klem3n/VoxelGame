@@ -8,8 +8,12 @@ import com.mygdx.game.block.BlockManager;
 import com.mygdx.game.ui.ScreenType;
 import com.mygdx.game.ui.screen.GameScreen;
 import com.mygdx.game.ui.screen.LoadScreen;
+import com.mygdx.game.utils.SaveUtils;
+import com.mygdx.game.world.World;
 import com.mygdx.game.world.biome.BiomeManager;
 import com.mygdx.game.world.tree.TreeManager;
+
+import java.io.IOException;
 
 public class VoxelGame extends Game {
 	private final AssetManager assets = new AssetManager();
@@ -23,6 +27,12 @@ public class VoxelGame extends Game {
 		BiomeManager.init();
 		TreeManager.init();
 
+		try {
+			SaveUtils.loadWorld();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		assets.load(AssetDescriptors.TILES);
 		assets.load(AssetDescriptors.CROSSHAIR);
 		assets.load(AssetDescriptors.HOTBAR);
@@ -35,6 +45,12 @@ public class VoxelGame extends Game {
 
 	@Override
 	public void dispose() {
+		try {
+			SaveUtils.saveWorld(World.INSTANCE);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		assets.dispose();
 		batch.dispose();
 

@@ -151,7 +151,13 @@ public class Chunk implements Disposable {
     }
 
     private void modifyBlock(int x, int y, int z, int block) {
-        chunkData.getChangedVoxels();
+        int hash = x + z * width + y * widthTimesHeight;
+
+        if(chunkData.getChangedVoxelIndexes().contains(hash, true)){
+            return;
+        }
+
+        chunkData.getChangedVoxelIndexes().add(hash);
     }
 
     public void setFast(int x, int y, int z, Block block) {
@@ -417,5 +423,16 @@ public class Chunk implements Disposable {
     @Override
     public int hashCode() {
         return getChunkPosition().hashCode();
+    }
+
+    public void placeModifiedBlocks() {
+        for (int i = 0; i < chunkData.getChangedVoxels().size; i++) {
+            int hash = chunkData.getChangedVoxelIndexes().get(i);
+            byte voxel = chunkData.getChangedVoxels().get(i);
+
+            chunkData.getVoxels()[hash] = voxel;
+        }
+
+        dirty = true;
     }
 }
