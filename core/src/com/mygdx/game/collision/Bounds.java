@@ -2,6 +2,9 @@ package com.mygdx.game.collision;
 
 import com.badlogic.gdx.math.Vector3;
 
+/**
+ * The bounds object, that specifies a box's bounds
+ */
 public class Bounds {
     /**
      * The position offset of bounds

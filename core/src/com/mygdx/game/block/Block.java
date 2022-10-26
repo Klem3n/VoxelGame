@@ -10,15 +10,36 @@ import com.mygdx.game.world.chunk.Chunk;
 import com.mygdx.game.world.entity.Entity;
 
 public abstract class Block {
+    /**
+     * Static constant for the default air block
+     */
     public static Block AIR;
 
+    /**
+     * Blocks ID
+     */
     private final int id;
+    /**
+     * Name of the block
+     */
     private final String name;
+    /**
+     * If the block is solid (has collisions)
+     */
     private final boolean solid;
+    /**
+     * The blocks transparency
+     */
     private final float alpha;
 
+    /**
+     * Collision bounds of the block
+     */
     protected final Array<Bounds> bounds = new Array<>();
 
+    /**
+     * Creates a new {@link Block} object
+     */
     public Block(int id, String name, boolean solid, float alpha) {
         this.id = id;
         this.name = name;
@@ -26,6 +47,18 @@ public abstract class Block {
         this.alpha = alpha;
     }
 
+    /**
+     * Abstract method for rendering the block
+     *
+     * @param verticies    Array of all meshes verticies
+     * @param vertexOffset Current offset of the vertex
+     * @param chunk        The chunk in which the block is located
+     * @param x            X position in the chunk
+     * @param y            Y position in the chunk
+     * @param z            Z position in the chunk
+     * @param faceMask     The face mask
+     * @return Returns the new increased vertex offset
+     */
     public abstract int render(float[] verticies, int vertexOffset, Chunk chunk, int x, int y, int z, byte faceMask);
 
     public abstract byte calculateFaceMasks(Chunk chunk, int x, int y, int z);

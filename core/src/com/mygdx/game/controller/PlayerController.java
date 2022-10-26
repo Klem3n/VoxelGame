@@ -6,15 +6,28 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.IntIntMap;
-import com.mygdx.game.world.World;
-import com.mygdx.game.world.chunk.Chunk;
 import com.mygdx.game.world.entity.player.Player;
 
+/**
+ * Represents the controls player can use to traverse and interact with the world
+ */
 public class PlayerController extends InputAdapter {
+    /**
+     * Static variable for players speed
+     */
     private static final float SPEED = 0.6f;
+    /**
+     * Static variable for players jump force
+     */
     private static final float JUMP_FORCE = 5f;
+    /**
+     * Static variable for players rotation speed
+     */
     private static final float ROTATION_SPEED = 0.4f;
 
+    /**
+     * Maps the controlls to static variables
+     */
     private static final int STRAFE_LEFT = Keys.A;
     private static final int STRAFE_RIGHT = Keys.D;
     private static final int FORWARD = Keys.W;
@@ -24,25 +37,56 @@ public class PlayerController extends InputAdapter {
     private static final int JUMP = Keys.SPACE;
     private static final int ESCAPE = Keys.ESCAPE;
 
+    /**
+     * Players camera
+     */
     private final Camera camera;
+    /**
+     * Player reference
+     */
     private final Player player;
 
+    /**
+     * Control map
+     */
     private final IntIntMap keys = new IntIntMap();
 
+    /**
+     * Current mouse X position
+     */
     private int mouseX = 0;
+    /**
+     * Current mouse Y position
+     */
     private int mouseY = 0;
 
+    /**
+     * Creates a new {@link PlayerController} object and {@link Player} object
+     *
+     * @param camera   The players camera
+     * @param position The players position
+     */
     public PlayerController(Camera camera, Vector3 position) {
         this.camera = camera;
         this.player = new Player(camera, position);
     }
 
+    /**
+     * Executed when a key is pressed down
+     *
+     * @param keycode The key code
+     */
     @Override
     public boolean keyDown(int keycode) {
         keys.put(keycode, keycode);
         return true;
     }
 
+    /**
+     * Executed when a key is released
+     *
+     * @param keycode The key code
+     */
     @Override
     public boolean keyUp(int keycode) {
         keys.remove(keycode, 0);
@@ -63,16 +107,14 @@ public class PlayerController extends InputAdapter {
             }
         }
 
-        if (keycode == Keys.X) {
-            Chunk.MESH_POOL.clear();
-            World.INSTANCE.getChunks().forEach(e -> {
-                e.value.rerender();
-            });
-        }
-
         return true;
     }
 
+    /**
+     * Exectued when the player scrolls on the screen
+     *
+     * @param amount The scroll amount
+     */
     @Override
     public boolean scrolled(int amount) {
         int index = Math.floorMod(player.getInventory().getSelectedIndex() + amount, 10);
@@ -82,18 +124,30 @@ public class PlayerController extends InputAdapter {
         return false;
     }
 
+    /**
+     * Executes when the player drags on the screen
+     */
     @Override
     public boolean touchDragged(int screenX, int screenY, int pointer) {
         lookAround(screenX, screenY);
         return false;
     }
 
+    /**
+     * Executes when the player moves the mouse
+     */
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
         lookAround(screenX, screenY);
         return false;
     }
 
+    /**
+     * Handles the player's camera movement
+     *
+     * @param screenX X coordinate movement
+     * @param screenY Y coordinate movement
+     */
     private void lookAround(int screenX, int screenY) {
         int magX = Math.abs(mouseX - screenX);
         int magY = Math.abs(mouseY - screenY);
@@ -120,12 +174,18 @@ public class PlayerController extends InputAdapter {
         mouseY = screenY;
     }
 
+    /**
+     * Executes when the mouse button is released
+     */
     @Override
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         player.touchUp(screenX, screenY, pointer, button);
         return false;
     }
 
+    /**
+     * Updates the player every frame
+     */
     public void update() {
         float speed = SPEED;
 

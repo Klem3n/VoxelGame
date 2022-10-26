@@ -3,22 +3,53 @@ package com.mygdx.game.world.chunk;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ArrayMap;
-import com.mygdx.game.utils.Constants;
 
 import static com.mygdx.game.utils.Constants.*;
 
+/**
+ * Object that represents all the important information of the chunk
+ */
 public class ChunkData {
+    /**
+     * The cache of all generated chunk data
+     */
     public static final ArrayMap<Vector3, ChunkData> CHUNK_CACHE = new ArrayMap<>();
 
+    /**
+     * The chunks position in the chunk map
+     */
     private final Vector3 chunkPosition;
+    /**
+     * The blocks in the chunk
+     */
     private final byte[] voxels;
+    /**
+     * The biomes in the chunk
+     */
     private final int[] biomes;
+    /**
+     * Height map
+     */
     private final float[] heights;
+    /**
+     * Temperature map
+     */
     private final float[] temp;
+    /**
+     * Humidity map
+     */
     private final float[] humidity;
+    /**
+     * All manually modified blocks in the chunk
+     */
     private final Array<Integer> changedVoxelIndexes;
+    /**
+     * Array of all the changed block IDS in the chunk
+     */
     private final Array<Byte> changedVoxels;
-
+    /**
+     * If the chunk was fully loaded
+     */
     private boolean loaded = false;
 
     public ChunkData(Vector3 chunkPosition, byte[] voxels, int[] biomes, float[] heights, float[] temp, float[] humidity) {

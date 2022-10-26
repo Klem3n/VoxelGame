@@ -4,6 +4,11 @@ import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.mygdx.game.VoxelGame;
 
 public class TextureUtils {
+    /**
+     * gets the block texture from ID
+     *
+     * @param texture The texture id
+     */
     public static TextureRegion getBlockTexture(int texture) {
         TextureRegion[][] tiles = Constants.TEXTURE_TILES;
 

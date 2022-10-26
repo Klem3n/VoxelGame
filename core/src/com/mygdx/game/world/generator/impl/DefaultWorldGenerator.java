@@ -12,21 +12,36 @@ import com.mygdx.game.world.generator.WorldGenerator;
 
 import static com.mygdx.game.utils.Constants.SEALEVEL;
 
+/**
+ * An implementation of {@link WorldGenerator} that generates a default world
+ */
 public class DefaultWorldGenerator extends WorldGenerator {
+    /**
+     * Amount of random noises
+     */
     private static final int RANDOM_NOISE_AMOUNT = 8;
 
-    private final World world;
-
+    /**
+     * All the noises used in generating the world
+     */
     private final FastNoiseLite sumDolin, sumHribov, sumGorInOceanov, swampNoise, caveNoise, riverNoise, riverDepthNoise, sumTemperature, humidityNoise, soilNoise;
 
-    //random noises with high octaves used to generate foliage, soil deposits, caves
+    /**
+     * random noises with high octaves used to generate foliage, soil deposits, caves
+     */
     private FastNoiseLite[] randomNoises;
 
+    /**
+     * Represents the spawn point of the world
+     */
     private Vector3 spawnPoint;
 
+    /**
+     * Creates a new {@link DefaultWorldGenerator} object
+     *
+     * @param world The world to generate
+     */
     public DefaultWorldGenerator(World world) {
-        this.world = world;
-
         sumDolin = new FastNoiseLite(world.getWorldSeed());
         sumHribov = new FastNoiseLite(world.getWorldSeed() + 1);
         sumGorInOceanov = new FastNoiseLite(world.getWorldSeed() + 2);
@@ -131,6 +146,11 @@ public class DefaultWorldGenerator extends WorldGenerator {
         chunk.placeModifiedBlocks();
     }
 
+    /**
+     * Generates the biomes of the chunk
+     *
+     * @param chunk The chunk to generate
+     */
     private void generateBiomes(Chunk chunk) {
         Vector3 position = chunk.getPosition();
 
@@ -194,6 +214,9 @@ public class DefaultWorldGenerator extends WorldGenerator {
         }
     }
 
+    /**
+     * Fills the chunk
+     */
     private void fillChunk(Chunk chunk) {
         for (int x = 0; x < Constants.CHUNK_SIZE_X; x++) {
             for (int y = 0; y < Constants.CHUNK_SIZE_Y; y++) {
@@ -208,6 +231,9 @@ public class DefaultWorldGenerator extends WorldGenerator {
         }
     }
 
+    /**
+     * Fills the top soil of the chunk
+     */
     private void fillTopSoil(Chunk chunk) {
         for (int x = 0; x < Constants.CHUNK_SIZE_X; x++) {
             for (int z = 0; z < Constants.CHUNK_SIZE_Z; z++) {
@@ -220,6 +246,9 @@ public class DefaultWorldGenerator extends WorldGenerator {
         }
     }
 
+    /**
+     * Adds the biome's features to the chunk
+     */
     private void biomeFeatures(Chunk chunk) {
         for (int x = 0; x < Constants.CHUNK_SIZE_X; x++) {
             for (int z = 0; z < Constants.CHUNK_SIZE_Z; z++) {
@@ -232,6 +261,9 @@ public class DefaultWorldGenerator extends WorldGenerator {
         }
     }
 
+    /**
+     * @return The spawn location of the player in the world
+     */
     @Override
     public Vector3 getSpawnPoint() {
         if (spawnPoint == null) {

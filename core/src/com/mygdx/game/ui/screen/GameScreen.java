@@ -31,20 +31,58 @@ import com.mygdx.game.world.entity.Entity;
 import static com.mygdx.game.utils.Constants.*;
 
 public class GameScreen extends ScreenAdapter {
+    /**
+     * The game object reference
+     */
     private final VoxelGame game;
+    /**
+     * The asset manager
+     */
     private final AssetManager assets;
 
+    /**
+     * Batch of sprites used for rendering the HUD
+     */
     private SpriteBatch spriteBatch;
+    /**
+     * Font used to render the text on the screen
+     */
     private BitmapFont font;
+    /**
+     * Batch of models to be rendered (chunk meshes)
+     */
     private ModelBatch modelBatch;
+    /**
+     * Player camera reference
+     */
     private PerspectiveCamera camera;
+    /**
+     * Enviorment variable used to create realistic lightning in the game
+     */
     private Environment environment;
+    /**
+     * Player controller reference
+     */
     private PlayerController playerController;
+    /**
+     * World reference
+     */
     private World world;
+    /**
+     * Player HUD reference
+     */
     private Hud hud;
 
-    private Array<Entity> entities = new Array<>();
+    /**
+     * Array of all active entities in the world
+     */
+    private final Array<Entity> entities = new Array<>();
 
+    /**
+     * Creates a new {@link GameScreen} object, that is responsible for rendering the game world
+     *
+     * @param game The game reference itself
+     */
     public GameScreen(VoxelGame game) {
         this.game = game;
         this.assets = game.getAssets();
@@ -53,6 +91,11 @@ public class GameScreen extends ScreenAdapter {
         create();
     }
 
+    /**
+     * Creates and initializes all the needed variables
+     * <p>
+     * Creates the player, loads the world, sets the environment and instantiates the material
+     */
     public void create() {
         Texture texture = assets.get(AssetDescriptors.TILES);
 
@@ -67,7 +110,7 @@ public class GameScreen extends ScreenAdapter {
         int worldSeed = 1234;
         Vector3 playerPosition = new Vector3(.3f, 80.0f, .3f);
 
-        if(SaveUtils.PLAYER_POSITION != null){
+        if (SaveUtils.PLAYER_POSITION != null) {
             worldSeed = SaveUtils.WORLD_SEED;
             playerPosition.set(SaveUtils.PLAYER_POSITION);
         }
@@ -97,8 +140,13 @@ public class GameScreen extends ScreenAdapter {
         Gdx.input.setCursorCatched(true);
     }
 
+    /**
+     * Updates the world
+     *
+     * @param deltaTime The time (in seconds) passed since the last frame render
+     */
     private void update(float deltaTime) {
-        if(!World.INSTANCE.loaded()) {
+        if (!World.INSTANCE.loaded()) {
             return;
         }
 
@@ -110,6 +158,11 @@ public class GameScreen extends ScreenAdapter {
         hud.update(deltaTime);
     }
 
+    /**
+     * Renders the world and the HUD
+     *
+     * @param deltaTime The time (in seconds) passed since the last frame render
+     */
     @Override
     public void render(float deltaTime) {
         update(deltaTime);
@@ -144,6 +197,8 @@ public class GameScreen extends ScreenAdapter {
                 float temp = chunk.getTemp(x, z);
                 float hum = chunk.getHumidity(x, z);
 
+                font.draw(spriteBatch, "FPS: " + Gdx.graphics.getFramesPerSecond(), 10, 40);
+
                 font.draw(spriteBatch, "Biome: " + BiomeManager.getById(biome).getName(), 10, 400);
                 font.draw(spriteBatch, "Temp: " + temp, 10, 385);
                 font.draw(spriteBatch, "Hum: " + hum, 10, 370);
@@ -155,6 +210,12 @@ public class GameScreen extends ScreenAdapter {
         spriteBatch.end();
     }
 
+    /**
+     * Resizes the game screen window
+     *
+     * @param width  The width
+     * @param height The heigt
+     */
     @Override
     public void resize(int width, int height) {
         camera.viewportWidth = width;
@@ -164,6 +225,9 @@ public class GameScreen extends ScreenAdapter {
         hud.resize(width, height);
     }
 
+    /**
+     * Disposes of the game screen and the world
+     */
     @Override
     public void dispose() {
         font.dispose();

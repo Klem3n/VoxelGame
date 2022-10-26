@@ -15,6 +15,9 @@ import com.mygdx.game.utils.Constants;
 
 import static com.mygdx.game.utils.Constants.MATERIAL;
 
+/**
+ * Static utility class that handles the rendering of the currently selected block
+ */
 public class SelectedBlockRenderer {
     private static float[] VERTICES = new float[4 * 12 * 6];
 

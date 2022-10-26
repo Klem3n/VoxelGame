@@ -7,6 +7,9 @@ import com.mygdx.game.world.chunk.Chunk;
 
 import static com.mygdx.game.utils.TextureUtils.getBlockTexture;
 
+/**
+ * Static utility class that handles the rendering of default blocks
+ */
 public class DefaultBlockRenderer {
 
     public static int render(float[] vertices, int vertexOffset, Chunk chunk, int topTexture, int sideTexture, int bottomTexture, float alpha, int x, int y, int z, byte faceMask, boolean applyClimateEffects) {

@@ -6,14 +6,31 @@ import com.mygdx.game.utils.Constants;
 import com.mygdx.game.world.World;
 import com.mygdx.game.world.entity.Entity;
 
+/**
+ * The collision bounds of an entity used in collision detection
+ */
 public class EntityBounds extends Bounds {
+    /**
+     * The entity reference
+     */
     private final Entity entity;
 
+    /**
+     * Creates a new {@link EntityBounds} for a {@link Entity}
+     *
+     * @param entity     The entity
+     * @param dimensions The dimensions of the entity
+     */
     public EntityBounds(Entity entity, Vector3 dimensions) {
         super(dimensions);
         this.entity = entity;
     }
 
+    /**
+     * Checks the collision in the world for the bounds
+     *
+     * @param velocity The velocity in which to check
+     */
     public void checkCollision(Vector3 velocity) {
         float x = velocity.x;
         float y = velocity.y;
@@ -34,6 +51,14 @@ public class EntityBounds extends Bounds {
         velocity.set(x, y, z);
     }
 
+    /**
+     * Tests the collision of the bounds in a certain direction
+     *
+     * @param dx Direction X
+     * @param dy Direction Y
+     * @param dz Direction Z
+     * @return {@code True} if the bounds collided with the world
+     */
     private boolean hitTest(float dx, float dy, float dz) {
         World world = World.INSTANCE;
 

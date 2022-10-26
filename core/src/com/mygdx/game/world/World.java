@@ -21,40 +21,91 @@ import java.util.concurrent.Executors;
 import static com.mygdx.game.utils.Constants.*;
 
 public class World implements RenderableProvider, Disposable {
+    /**
+     * Static instance of the current world being played
+     */
     public static World INSTANCE;
+    /**
+     * Static variable representing how many chunks are currently being rendered in the current frame
+     */
     public static int RENDERED_CHUNKS;
 
     /**
-     * The ExecutorService.
+     * The ExecutorService responsible for generating chunks.
      */
     private final ExecutorService chunkExecutor;
 
+    /**
+     * Array of all chunks currently in the world
+     */
     private final ArrayMap<Vector3, Chunk> chunks = new ArrayMap<>();
-    private final Object lock = new Object();  //lock access to cache
+    /**
+     * Locks access to the chunk cache
+     */
+    private final Object lock = new Object();
 
+    /**
+     * Player controller reference
+     */
     private final PlayerController playerController;
+    /**
+     * Last player position where the chunks were updated
+     */
     private Vector3 lastUpdatePosition = null;
+    /**
+     * The generator object used for generating the world and its terrain
+     */
     private final WorldGenerator worldGenerator;
+    /**
+     * The seed of the world
+     */
     private final int seed;
+    /**
+     * If the world has finished loading
+     */
     private boolean loaded = false;
 
+    /**
+     * Creates a new {@link World} object
+     *
+     * @param playerController Reference to the player controller
+     * @param seed             World seed
+     */
     public World(PlayerController playerController, int seed) {
         INSTANCE = this;
         this.playerController = playerController;
         this.worldGenerator = new DefaultWorldGenerator(this);
         this.seed = seed;
 
-        chunkExecutor = Executors.newFixedThreadPool(1, ThreadUtil.create("ClientSynchronizer"));
+        chunkExecutor = Executors.newFixedThreadPool(3, ThreadUtil.create("ClientSynchronizer"));
     }
 
+    /**
+     * Sets a block in a chunk
+     *
+     * @param generate if the chunk should be generated
+     * @param load     if the chunk should be loaded
+     */
     public void set(Vector3 position, Block block, boolean generate, boolean load) {
         set(position.x, position.y, position.z, block, generate, load);
     }
 
+    /**
+     * Sets a block in a chunk
+     *
+     * @param generate if the chunk should be generated
+     * @param load     if the chunk should be loaded
+     */
     public void set(Vector3 position, int block, boolean generate, boolean load) {
         set(position.x, position.y, position.z, block, generate, load);
     }
 
+    /**
+     * Sets a block in a chunk
+     *
+     * @param generate if the chunk should be generated
+     * @param load     if the chunk should be loaded
+     */
     public void set(float x, float y, float z, Block block, boolean generate, boolean load) {
         if (block == null) {
             block = Block.AIR;
@@ -63,6 +114,12 @@ public class World implements RenderableProvider, Disposable {
         set(x, y, z, block.getId(), generate, load);
     }
 
+    /**
+     * Sets a block in a chunk
+     *
+     * @param generate if the chunk should be generated
+     * @param load     if the chunk should be loaded
+     */
     public void set(float x, float y, float z, int block, boolean generate, boolean load) {
         int ix = floor(x);
         int iy = floor(y);
@@ -82,6 +139,12 @@ public class World implements RenderableProvider, Disposable {
         }
     }
 
+    /**
+     * Sets a block in a chunk without checking for the position bounds
+     *
+     * @param generate if the chunk should be generated
+     * @param load     if the chunk should be loaded
+     */
     public void setFast(Vector3 position, Block block, boolean generate, boolean load) {
         if (block == null) {
             block = Block.AIR;
@@ -90,10 +153,22 @@ public class World implements RenderableProvider, Disposable {
         setFast(position.x, position.y, position.z, block.getId(), generate, load);
     }
 
+    /**
+     * Sets a block in a chunk without checking for the position bounds
+     *
+     * @param generate if the chunk should be generated
+     * @param load     if the chunk should be loaded
+     */
     public void setFast(Vector3 position, int block, boolean generate, boolean load) {
         setFast(position.x, position.y, position.z, block, generate, load);
     }
 
+    /**
+     * Sets a block in a chunk without checking for the position bounds
+     *
+     * @param generate if the chunk should be generated
+     * @param load     if the chunk should be loaded
+     */
     public void setFast(float x, float y, float z, int block, boolean generate, boolean load) {
         int ix = floor(x);
         int iy = floor(y);
@@ -113,10 +188,22 @@ public class World implements RenderableProvider, Disposable {
         }
     }
 
+    /**
+     * Gets a block in a chunk
+     *
+     * @param generate if the chunk should be generated
+     * @param load     if the chunk should be loaded
+     */
     public Block get(Vector3 position, boolean generate, boolean load) {
         return get(position.x, position.y, position.z, generate, load);
     }
 
+    /**
+     * Gets a block in a chunk
+     *
+     * @param generate if the chunk should be generated
+     * @param load     if the chunk should be loaded
+     */
     public Block get(float x, float y, float z, boolean generate, boolean load) {
         int ix = floor(x);
         int iy = floor(y);
@@ -136,6 +223,14 @@ public class World implements RenderableProvider, Disposable {
         }
     }
 
+    /**
+     * Gets a chunk in the world
+     *
+     * @param chunkPosition The chunks position in the map
+     * @param generate      If the chunk should be generated
+     * @param load          If the chunk should be loaded
+     * @return {@link Chunk} if chunk exists in the world
+     */
     public Chunk getChunk(Vector3 chunkPosition, boolean generate, boolean load) {
         synchronized (chunks) {
             Chunk chunk = null;
@@ -160,6 +255,11 @@ public class World implements RenderableProvider, Disposable {
         }
     }
 
+    /**
+     * Updates the chunks rendered every frame
+     * <p>
+     * If player moved out of a chunks range, the chunk is removed and a new one is added
+     */
     private void updateChunks() {
         if (!getChunkPosition(playerController.getPosition()).equals(lastUpdatePosition)) {
             for (int y = -2; y < 2; y++) {
@@ -183,8 +283,14 @@ public class World implements RenderableProvider, Disposable {
         }
     }
 
+    /**
+     * Gets all the renderable objects in the world
+     *
+     * @param renderables Array of all objects waiting to be rendered
+     * @param pool        The pool of renderable objects
+     */
     @Override
-    public void getRenderables (Array<Renderable> renderables, Pool<Renderable> pool) {
+    public void getRenderables(Array<Renderable> renderables, Pool<Renderable> pool) {
         RENDERED_CHUNKS = 0;
 
         updateChunks();
@@ -224,6 +330,11 @@ public class World implements RenderableProvider, Disposable {
         }
     }
 
+    /**
+     * Disposes of the world and all the chunks
+     * <p>
+     * also shuts down the chunk executor threads
+     */
     @Override
     public void dispose() {
         synchronized (lock) {
@@ -258,13 +369,16 @@ public class World implements RenderableProvider, Disposable {
         return loaded;
     }
 
-    public void checkWorldLoad(){
-        if(loaded){
+    /**
+     * Checks if the world has fully finished loading
+     */
+    public void checkWorldLoad() {
+        if (loaded) {
             return;
         }
 
         for (ObjectMap.Entry<Vector3, Chunk> chunk : chunks) {
-            if(chunk.value.isDirty()){
+            if (chunk.value.isLoaded() && chunk.value.isDirty()) {
                 return;
             }
         }

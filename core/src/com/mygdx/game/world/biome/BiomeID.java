@@ -1,5 +1,8 @@
 package com.mygdx.game.world.biome;
 
+/**
+ * Represents all possible biome ids
+ */
 public class BiomeID {
     public static final int
             PLAINS = 0,

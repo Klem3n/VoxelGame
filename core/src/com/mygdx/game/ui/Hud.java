@@ -14,15 +14,37 @@ import com.mygdx.game.ui.actor.HotbarActor;
 import com.mygdx.game.world.World;
 import com.mygdx.game.world.entity.player.Player;
 
+/**
+ * Handles the players HUD
+ */
 public class Hud implements Disposable {
+    /**
+     * The asset manager
+     */
     private final AssetManager assets;
+    /**
+     * The stage
+     */
     private final Stage stage;
+    /**
+     * HUD viewport
+     */
     private final Viewport viewport;
-
+    /**
+     * Image of the crosshair
+     */
     private Image crosshair;
-
+    /**
+     * Inventory hotbar actor component
+     */
     private HotbarActor hotbarActor;
 
+    /**
+     * Creates a new {@link Hud} object
+     *
+     * @param assets The asset manager
+     * @param sb     Sprite batch component
+     */
     public Hud(AssetManager assets, SpriteBatch sb) {
         this.assets = assets;
 
@@ -42,6 +64,11 @@ public class Hud implements Disposable {
         stage.addActor(hotbarActor);
     }
 
+    /**
+     * Updates the HUD every frame
+     *
+     * @param dt time passed since the last frame (in seconds)
+     */
     public void update(float dt) {
         Player player = World.INSTANCE.getPlayer();
 
@@ -52,6 +79,12 @@ public class Hud implements Disposable {
         }
     }
 
+    /**
+     * Resizes the HUD when window size is changed
+     *
+     * @param width  The window width
+     * @param height The window height
+     */
     public void resize(int width, int height) {
         viewport.update(width, height, true);
     }

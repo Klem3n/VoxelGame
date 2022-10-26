@@ -11,18 +11,33 @@ import com.mygdx.game.world.entity.Entity;
 import com.mygdx.game.world.entity.player.link.Inventory;
 
 /**
- * Takes a {@link Camera} instance and controls it via w,a,s,d and mouse panning.
- *
- * @author badlogic
+ * An entity that takes a {@link Camera} instance and controls it via w,a,s,d and mouse panning.
  */
 public class Player extends Entity {
+    /**
+     * Players camera component
+     */
     private final Camera camera;
 
+    /**
+     * Collision ray used for detecting interacting blocks
+     */
     private final CollisionRay blockDetectionRay;
+    /**
+     * Which block the player is currently looking at
+     */
     private WorldBlock selectedBlock;
-
+    /**
+     * Players inventory component
+     */
     private Inventory inventory;
 
+    /**
+     * Creates a new {@link Player} object
+     *
+     * @param camera   The players camera component
+     * @param position The players position
+     */
     public Player(Camera camera, Vector3 position) {
         super(position, new Vector3(0.6f, 1.6f, 0.6f));
         this.camera = camera;
@@ -32,13 +47,21 @@ public class Player extends Entity {
         inventory = new Inventory();
     }
 
+    /**
+     * Updates the player entity every frame
+     */
     @Override
     public void update() {
         super.update();
-        
+
         selectedBlock = blockDetectionRay.trace();
     }
 
+    /**
+     * Updates the player entity every frame
+     *
+     * @param deltaTime The time (in seconds) passed since the last frame
+     */
     @Override
     public void update(float deltaTime) {
         super.update(deltaTime);
@@ -47,6 +70,11 @@ public class Player extends Entity {
         camera.update(true);
     }
 
+    /**
+     * Executed when the mouse button is released
+     * <p>
+     * Handles the placing and removing of the blocks
+     */
     public boolean touchUp(int screenX, int screenY, int pointer, int button) {
         /*
          Block destroy and place

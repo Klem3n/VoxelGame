@@ -6,13 +6,29 @@ import com.mygdx.game.world.tree.TreeManager;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Maps biome IDs to the corresponding biome object
+ */
 public class BiomeManager {
+    /**
+     * Biome map, mapped by their ids
+     */
     private static final Map<Integer, Biome> biomeMap = new HashMap<>();
 
+    /**
+     * Gets a biome by their ID
+     *
+     * @param id The ID of the biome
+     */
     public static Biome getById(int id) {
         return biomeMap.get(id);
     }
 
+    /**
+     * Registers a new biome, checks if it already exists and adds it to the map
+     *
+     * @param biome The biome to register
+     */
     private static void registerBiome(Biome biome) {
         if (biomeMap.containsKey(biome.getId())) {
             System.err.println("Duplicate biome id: " + biome.getId());
@@ -22,6 +38,9 @@ public class BiomeManager {
         biomeMap.put(biome.getId(), biome);
     }
 
+    /**
+     * Initializes the biome manager and dynamically loads all biomes from {@link com.mygdx.game.world.biome.impl} package
+     */
     public static void init() {
         try {
             ClassPath classPath = ClassPath.from(TreeManager.class.getClassLoader());

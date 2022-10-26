@@ -2,6 +2,9 @@ package com.mygdx.game.utils;
 
 public class WhittakerBiomes {
 
+    /**
+     * Gets the biome based on the temperature and humidity
+     */
     public static byte getBiome(float temperature, float humidity) {
         int temp = (int) Math.min(Math.max(temperature, -10f), 35f) + 10;
 

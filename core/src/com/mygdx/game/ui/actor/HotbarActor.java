@@ -4,6 +4,9 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.mygdx.game.world.entity.player.link.Inventory;
 
+/**
+ * HUD component for the inventory hotbar
+ */
 public class HotbarActor extends Table {
     private final AssetManager assets;
 

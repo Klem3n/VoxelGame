@@ -5,9 +5,20 @@ import com.google.common.reflect.ClassPath;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Manages the blocks and maps them to {@link Block} objects by ids
+ */
 public class BlockManager {
+    /**
+     * Static map of block objects mapped by their ids
+     */
     private static final Map<Integer, Block> blockMap = new HashMap<>();
 
+    /**
+     * Gets a Block by their integer ID
+     *
+     * @param id The ID of the block
+     */
     public static Block getById(int id) {
         return blockMap.getOrDefault(id, Block.AIR);
     }
@@ -25,6 +36,9 @@ public class BlockManager {
         blockMap.put(block.getId(), block);
     }
 
+    /**
+     * Initializes the block manager and dynamically loads all blocks from {@link com.mygdx.game.block.impl} package
+     */
     public static void init() {
         try {
             ClassPath classPath = ClassPath.from(BlockManager.class.getClassLoader());

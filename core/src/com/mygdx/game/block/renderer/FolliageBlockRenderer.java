@@ -6,6 +6,9 @@ import com.mygdx.game.world.chunk.Chunk;
 
 import static com.mygdx.game.utils.TextureUtils.getBlockTexture;
 
+/**
+ * Static utility class that handles the rendering of folliage blocks
+ */
 public class FolliageBlockRenderer {
 
     public static int render(float[] verticies, int vertexOffset, Chunk chunk, int texture, float alpha, float size, int x, int y, int z, byte faceMask) {

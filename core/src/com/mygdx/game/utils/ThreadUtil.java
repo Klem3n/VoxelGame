@@ -10,9 +10,6 @@ import java.util.logging.Logger;
 
 /**
  * A static utility class which provides ease of use functionality for {@link Thread}s
- *
- * @author Ryley
- * @author Major
  */
 public final class ThreadUtil {
 
@@ -77,12 +74,4 @@ public final class ThreadUtil {
 
         return builder.build();
     }
-
-    /**
-     * Sole private constructor to prevent instantiation.
-     */
-    private ThreadUtil() {
-
-    }
-
 }

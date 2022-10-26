@@ -3,11 +3,26 @@ package com.mygdx.game.block;
 import com.badlogic.gdx.math.Vector3;
 import com.mygdx.game.collision.ray.RayHit;
 
+/**
+ * Wrold block is a {@link Block} object currently located in the world
+ */
 public class WorldBlock {
+    /**
+     * The world position of the block
+     */
     private Vector3 position;
+    /**
+     * The block
+     */
     private Block block;
+    /**
+     * The ray cast that the block interacted with
+     */
     private RayHit rayHit;
 
+    /**
+     * creates a new {@link WorldBlock} object
+     */
     public WorldBlock(Vector3 position, Block block, RayHit rayHit) {
         this.position = position;
         this.block = block;

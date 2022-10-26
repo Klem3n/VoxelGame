@@ -8,19 +8,37 @@ import com.mygdx.game.world.World;
 
 import static com.mygdx.game.utils.Constants.floor;
 
+/**
+ * Ray tracing object that is used for detecting the current interacting block
+ */
 public class CollisionRay {
-
+    /**
+     * The origin of the ray
+     */
     private final Vector3 origin;
+    /**
+     * The rays direction
+     */
     private final Vector3 direction;
-
+    /**
+     * The maximum distance the ray can travel
+     */
     private final float distance;
 
+    /**
+     * Creates a new {@link CollisionRay} object
+     */
     public CollisionRay(final Vector3 origin, final Vector3 direction, final float distance) {
         this.origin = origin;
         this.direction = direction;
         this.distance = distance;
     }
 
+    /**
+     * Runs the ray tracing algorithm
+     *
+     * @return {@link WorldBlock} of the block the ray interacted with or default AIR block if the ray missed
+     */
     public WorldBlock trace() {
         World world = World.INSTANCE;
 

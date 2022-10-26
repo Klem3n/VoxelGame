@@ -10,6 +10,9 @@ import com.mygdx.game.assets.AssetDescriptors;
 import com.mygdx.game.utils.Constants;
 import com.mygdx.game.world.entity.player.link.Item;
 
+/**
+ * HUD component for the inventory slot image
+ */
 public class InventorySlotActor extends Image {
 
     boolean selected = false;

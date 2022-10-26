@@ -14,20 +14,48 @@ import java.util.Random;
 import static com.mygdx.game.utils.Constants.CHUNK_SIZE_Y;
 import static com.mygdx.game.utils.Constants.SEALEVEL;
 
+/**
+ * Abstract class that represents a biome in the world
+ */
 public abstract class Biome {
-
+    /**
+     * ID of the biome
+     */
     private final int id;
+    /**
+     * Name of the biome
+     */
     private final String name;
 
-    //The odds of trees, flowers and animals spawning in the biome (50 - 1 in 50)
+    /**
+     * The chances of a tree spawning in the world
+     */
     protected int treeOdds = Integer.MAX_VALUE, folliageOdds = Integer.MAX_VALUE, animalOdds = Integer.MAX_VALUE;
 
+    /**
+     * The top soil block of the biome
+     */
     protected int topSoil = BlockID.GRASS;
+    /**
+     * The soil block of the biome
+     */
     protected int soilBlock = BlockID.DIRT;
 
+    /**
+     * Array of folliage that can grow in the biome
+     */
     private final Array<Integer> folliage = new Array<>();
+    /**
+     * Array of trees that can grom in the biome
+     */
     private final Array<Integer> trees = new Array<>();
 
+    /**
+     * Creates a new {@link Biome} object
+     *
+     * @param id   Biome ID
+     * @param name Biome Name
+     */
     public Biome(int id, String name) {
         this.id = id;
         this.name = name;
@@ -88,6 +116,9 @@ public abstract class Biome {
         }
     }
 
+    /**
+     * Adds features to the biome like trees, flowers and folliage
+     */
     public void addBiomeFeatures(Chunk chunk, int x, int z, World world, FastNoiseLite[] randomNoises) {
         int height = (int) chunk.getHeight(x, z) + 1;
 
